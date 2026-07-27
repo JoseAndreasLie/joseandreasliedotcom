@@ -51,8 +51,14 @@ export default function Contact() {
                 <a href={`mailto:${profile.email}`}>{profile.email}</a>
               </li>
               <li>
-                <span>Phone</span>
-                <a href={`tel:${profile.phone.replace(/\s/g, '')}`}>{profile.phone}</a>
+                <span>WhatsApp</span>
+                <a
+                  href={`https://wa.me/${profile.phone.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {profile.phone}
+                </a>
               </li>
               <li>
                 <span>LinkedIn</span>
