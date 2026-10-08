@@ -1,0 +1,107 @@
+# Prod: docker compose -f docker-compose.yml up -d --build   (skips the dev override)
+# Local: docker compose up postgres minio   (override publishes 5432/9000 on localhost)
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-jose.web.id}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./FE/dist:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - minio
+
+  api:
+    build: ./BE
+    restart: unless-stopped
+    # Explicit list (not env_file) so MinIO root and Postgres superuser creds never reach the api.
+    environment:
+      PORT: "4000"
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio}
+      MINIO_PORT: ${MINIO_PORT:-9000}
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-works}
+    expose:
+      - "4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./BE/db/schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Official minio/minio and minio/mc images are no longer pullable from Docker Hub/quay
+  # (MinIO stopped publishing community images in 2025). pgsty/* is a community-maintained
+  # fork that keeps RELEASE tags. Pinned; bump deliberately.
+  minio:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+
+  # One-shot, idempotent: bucket `works` with anonymous GetObject only (no listing),
+  # plus a non-root `api` user that may only PutObject into works/*.
+  minio-init:
+    image: pgsty/mc:RELEASE.2026-09-16T00-00-00Z
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        until mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"; do sleep 1; done
+        mc mb --ignore-existing local/works
+        cat > /tmp/public-read.json <<'JSON'
+        {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::works/*"]}]}
+        JSON
+        mc anonymous set-json /tmp/public-read.json local/works
+        cat > /tmp/api-put.json <<'JSON'
+        {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["s3:PutObject"],"Resource":["arn:aws:s3:::works/*"]}]}
+        JSON
+        mc admin policy create local api-put /tmp/api-put.json
+        mc admin user add local "$$MINIO_ACCESS_KEY" "$$MINIO_SECRET_KEY"
+        # attach errors if already attached on reruns; that is fine.
+        mc admin policy attach local api-put --user "$$MINIO_ACCESS_KEY" || true
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  minio_data:

@@ -1,0 +1,9 @@
+# Local dev only (auto-loaded by `docker compose`). Prod uses `-f docker-compose.yml`, so this is ignored there.
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:5432:5432"
+  minio:
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"

@@ -1,0 +1,206 @@
+@use '../../styles/tokens' as *;
+
+// Hero. Phones: copy, then a 3 x 2 static sheet. From 768px: the sheet (3D or static) fills a
+// fixed height stage behind the copy, so the lazy chunk swapping in causes no layout shift.
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+
+  @include md {
+    justify-content: flex-end;
+    height: clamp(560px, calc(100svh - var(--nav-h) - var(--space-8) * 2), 860px);
+  }
+
+  &__stage {
+    order: 2;
+
+    @include md {
+      position: absolute;
+      inset: 0 var(--gutter);
+    }
+  }
+
+  &__copy {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+
+    @include md {
+      max-width: 34%;
+      min-width: 320px;
+      padding-bottom: var(--space-4);
+      pointer-events: none; // let the cursor reach the sheet; links opt back in
+
+      a {
+        pointer-events: auto;
+      }
+    }
+  }
+
+  &__name {
+    text-wrap: balance;
+  }
+
+  &__titles {
+    max-width: 32ch;
+    font-size: 1.125rem;
+    text-wrap: pretty;
+  }
+
+  &__rec {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-dim);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  // One authored entrance: the copy develops in after the frames, short stagger.
+  &__copy > * {
+    animation: hero-in 700ms var(--ease-out) both;
+  }
+
+  &__name {
+    animation-delay: 80ms;
+  }
+
+  &__titles {
+    animation-delay: 160ms;
+  }
+
+  &__rec {
+    animation-delay: 240ms;
+  }
+
+  &__actions {
+    animation-delay: 320ms;
+  }
+}
+
+// The global reduced motion rule keeps the delays, which would make the copy pop in late.
+@include reduced-motion {
+  .hero__copy > * {
+    animation: none;
+  }
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+}
+
+.hero-scene {
+  position: absolute;
+  inset: 0;
+}
+
+.still-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  transition: opacity 500ms var(--ease-out);
+
+  &.is-hidden {
+    opacity: 0;
+  }
+
+  // Phones show six frames.
+  > :nth-child(n + 7) {
+    display: none;
+  }
+
+  @include md {
+    position: absolute;
+    inset: 0 0 0 max(36%, 344px); // clear of the copy column (34%, min 320px)
+    grid-template-columns: repeat(4, 1fr);
+    align-content: center;
+    gap: var(--space-4);
+
+    > :nth-child(n + 7) {
+      display: block;
+    }
+  }
+
+  &__frame {
+    aspect-ratio: 3 / 2;
+    padding: var(--space-1);
+  }
+
+  &__img,
+  &__empty {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: var(--surface);
+  }
+
+  &__empty {
+    display: flex;
+    align-items: flex-end;
+    padding: var(--space-2);
+    border: 1px solid var(--rule);
+
+    .frame-counter {
+      font-size: 0.625rem;
+    }
+  }
+}
+
+// Featured sections
+.home-grid {
+  display: grid;
+  gap: var(--space-7);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include md {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+.home-skeleton {
+  aspect-ratio: 3 / 2;
+  padding: var(--space-2);
+
+  .media-card__empty {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.home-note {
+  color: var(--text-dim);
+
+  a {
+    color: var(--text);
+    text-underline-offset: 3px;
+  }
+}
+
+.home-more {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.home-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-dim);
+}

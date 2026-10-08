@@ -1,0 +1,453 @@
+@use '../../styles/tokens' as *;
+
+// Operate surface: plain, dense, no motion beyond UI feedback.
+.admin {
+  display: grid;
+  gap: var(--space-6);
+
+  // Headings take programmatic focus on view change; no ring for that.
+  h1[tabindex='-1']:focus {
+    outline: none;
+  }
+
+  &__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  &__bar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  &__status {
+    min-height: 1.6em;
+    color: var(--text-dim);
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  &__error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--accent);
+  }
+}
+
+.admin-dash {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.admin-login {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 360px;
+  justify-items: start;
+
+  .afield {
+    width: 100%;
+  }
+}
+
+// Fields
+.afield {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+
+  input:not([type='checkbox']):not([type='file']),
+  textarea,
+  select {
+    width: 100%;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--rule);
+    border-radius: 0;
+    background: var(--bg);
+    font-size: 1rem;
+    caret-color: var(--accent);
+    transition: border-color var(--dur-fast) var(--ease-out);
+
+    &:hover:not(:disabled) {
+      border-color: var(--text-dim);
+    }
+
+    &:focus-visible {
+      outline-offset: 0;
+      border-color: var(--accent);
+    }
+
+    &::placeholder {
+      color: var(--text-dim);
+      opacity: 0.7;
+    }
+  }
+
+  input:not([type='checkbox']):not([type='file']),
+  select {
+    height: 44px;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  // Markdown body: mono so syntax reads plainly.
+  textarea.admin-form__body {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  &--error {
+    input:not([type='checkbox']),
+    textarea,
+    select {
+      border-color: var(--accent);
+    }
+  }
+
+  &__hint {
+    font-size: 0.875rem;
+    color: var(--text-dim);
+  }
+
+  &__error {
+    font-size: 0.875rem;
+    color: var(--text);
+
+    &:empty {
+      display: none;
+    }
+
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: var(--space-2);
+      border-radius: 50%;
+      background: var(--accent);
+      vertical-align: middle;
+    }
+  }
+}
+
+// Works table
+.admin-table__wrap {
+  position: relative; // contains the visually hidden th so it can't widen the page
+  overflow-x: auto;
+  border-top: 1px solid var(--rule);
+}
+
+.admin-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+
+  th {
+    @include label;
+    padding: var(--space-3) var(--space-3) var(--space-3) 0;
+    color: var(--text-dim);
+    text-align: left;
+    font-weight: 400;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  td {
+    padding: var(--space-3) var(--space-3) var(--space-3) 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: middle;
+  }
+
+  &__title {
+    display: block;
+    font-weight: 500;
+  }
+
+  &__slug {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+}
+
+.admin-pill {
+  @include label;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--rule);
+  color: var(--text-dim);
+
+  &--live {
+    color: var(--text);
+    border-color: var(--text);
+
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+  }
+}
+
+// Form
+.admin-form {
+  display: grid;
+  gap: var(--space-7);
+  max-width: 860px;
+
+  &__group {
+    display: grid;
+    gap: var(--space-5);
+    min-width: 0;
+    padding: 0;
+    border: 0;
+
+    legend {
+      padding: 0 0 var(--space-4);
+      margin-bottom: var(--space-1);
+      width: 100%;
+      border-bottom: 1px solid var(--rule);
+    }
+  }
+
+  &__row {
+    display: grid;
+    gap: var(--space-5);
+
+    @include md {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+
+  &__submit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+}
+
+.admin-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  cursor: pointer;
+  justify-self: start;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  &__track {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    border: 1px solid var(--text-dim);
+    transition:
+      border-color var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      background: var(--text-dim);
+      transition:
+        transform var(--dur-base) var(--ease-out),
+        background-color var(--dur-fast) var(--ease-out);
+    }
+  }
+
+  input:checked + &__track {
+    border-color: var(--accent);
+
+    &::after {
+      background: var(--accent);
+      transform: translateX(18px);
+    }
+  }
+
+  input:focus-visible + &__track {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+}
+
+.admin-cover {
+  display: grid;
+  gap: var(--space-4);
+  align-items: start;
+
+  @include md {
+    grid-template-columns: 200px 1fr;
+  }
+
+  &__preview {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 3 / 2;
+    max-width: 240px;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
+.admin-upload,
+.admin-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.admin-inline input {
+  flex: 1 1 240px;
+}
+
+.admin-uploads {
+  display: grid;
+  gap: var(--space-2);
+
+  li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 2fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  &__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.875rem;
+  }
+
+  progress {
+    width: 100%;
+    height: 4px;
+    appearance: none;
+    border: 0;
+    background: var(--rule);
+    color: var(--accent);
+
+    &::-webkit-progress-bar {
+      background: var(--rule);
+    }
+
+    &::-webkit-progress-value {
+      background: var(--accent);
+    }
+
+    &::-moz-progress-bar {
+      background: var(--accent);
+    }
+  }
+}
+
+.admin-media {
+  display: grid;
+  border-top: 1px solid var(--rule);
+
+  &__item {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: var(--space-4);
+    padding-block: var(--space-4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  &__thumb {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__info {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  &__url {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    overflow-wrap: anywhere;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+  }
+}
+
+.admin-relogin {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--accent);
+}
+
+.admin-link {
+  display: grid;
+  gap: var(--space-3);
+  align-items: end;
+
+  @include md {
+    grid-template-columns: 1fr 2fr auto;
+  }
+
+  > .btn {
+    justify-self: start;
+  }
+}

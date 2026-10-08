@@ -1,0 +1,38 @@
+{$SITE_ADDRESS:jose.web.id} {
+	encode gzip zstd
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+		# sha256 = inline theme <script> in FE/index.html (exact bytes between the tags).
+		# Editing that script requires recomputing this hash.
+		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'sha256-utiLbYsgSmmvGKdk0OaeA3Eei4tbiA3p7zLvBWJznRM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.emailjs.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+	}
+	header /admin* X-Robots-Tag "noindex"
+
+	handle /api/* {
+		reverse_proxy api:4000
+	}
+
+	# /media/x.webp -> minio:9000/works/x.webp. GET/HEAD only, no empty key (listing), query dropped.
+	handle_path /media/* {
+		route {
+			@notread not method GET HEAD
+			respond @notread 405
+			@nokey path /
+			respond @nokey 404
+			rewrite * /works{path}?
+			reverse_proxy minio:9000
+		}
+	}
+
+	handle {
+		header /assets/* Cache-Control "public, max-age=31536000, immutable"
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

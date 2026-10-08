@@ -1,0 +1,433 @@
+@use '../../styles/tokens' as *;
+
+.work {
+  display: grid;
+  gap: var(--space-6);
+
+  &__back {
+    @include label;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    justify-self: start;
+    min-height: 44px;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+
+    svg {
+      transition: transform var(--dur-fast) var(--ease-out);
+    }
+
+    @include hover {
+      &:hover {
+        color: var(--text);
+
+        svg {
+          transform: translateX(-3px);
+        }
+      }
+    }
+  }
+
+  &__head {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  &__title {
+    max-width: 18ch;
+  }
+
+  &__summary {
+    max-width: 52ch;
+    color: var(--text-dim);
+    font-size: 1.125rem;
+  }
+
+  // Media frames reserve their box before content loads (no CLS).
+  &__frame {
+    padding: var(--space-2);
+
+    &--wide {
+      aspect-ratio: 16 / 9;
+    }
+
+    &--cover {
+      aspect-ratio: 3 / 2;
+    }
+  }
+
+  &__embed,
+  &__cover {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: var(--surface);
+  }
+
+  &__cover {
+    object-fit: cover;
+  }
+
+  // Contact sheet of thumbnails.
+  &__sheet {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-4);
+
+    @include md {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-6) var(--space-5);
+    }
+  }
+
+  &__thumb {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    width: 100%;
+    text-align: left;
+    cursor: zoom-in;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: var(--surface);
+      transition: transform var(--dur-slow) var(--ease-out);
+    }
+
+    &:focus-visible {
+      outline-offset: 6px;
+    }
+
+    &:focus-visible .viewfinder {
+      --vf-color: var(--accent);
+    }
+
+    @include hover {
+      &:hover .viewfinder {
+        --vf-color: var(--accent);
+      }
+
+      &:hover img {
+        transform: scale(1.02);
+      }
+    }
+  }
+
+  &__thumb-frame {
+    aspect-ratio: 3 / 2;
+    padding: var(--space-2);
+    overflow: hidden;
+  }
+
+  &__body {
+    display: grid;
+    gap: var(--space-8);
+    padding-top: var(--space-4);
+
+    @include lg {
+      grid-template-columns: minmax(0, 1fr) 16rem;
+      gap: var(--space-9);
+    }
+  }
+
+  // Markdown body. Global reset strips list markers and spacing, so restore them here.
+  &__prose {
+    > * + * {
+      margin-top: var(--space-4);
+    }
+
+    h2,
+    h3,
+    h4,
+    h5 {
+      margin-top: var(--space-7);
+      font-family: var(--font-display);
+      line-height: 1.15;
+    }
+
+    h2 {
+      font-size: clamp(1.75rem, 3vw, 2.25rem);
+    }
+
+    h3 {
+      font-size: 1.5rem;
+    }
+
+    h4,
+    h5 {
+      font-size: 1.25rem;
+    }
+
+    > :first-child {
+      margin-top: 0;
+    }
+
+    ul,
+    ol {
+      padding-left: 1.25em;
+    }
+
+    ul {
+      list-style: square;
+    }
+
+    ol {
+      list-style: decimal;
+    }
+
+    li + li {
+      margin-top: var(--space-2);
+    }
+
+    li::marker {
+      color: var(--text-dim);
+    }
+
+    a {
+      text-decoration-color: var(--accent);
+    }
+
+    blockquote {
+      padding-left: var(--space-5);
+      border-left: 1px solid var(--rule);
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.25rem;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.875em;
+    }
+
+    pre {
+      padding: var(--space-4);
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--rule);
+
+      code {
+        font-size: 0.8125rem;
+      }
+    }
+
+    img {
+      width: 100%;
+      height: auto;
+    }
+
+    hr {
+      border: 0;
+      border-top: 1px solid var(--rule);
+    }
+  }
+
+  &__side {
+    display: grid;
+    gap: var(--space-6);
+    align-content: start;
+
+    @include lg {
+      position: sticky;
+      top: calc(var(--nav-h) + var(--space-5));
+    }
+  }
+
+  &__group {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  &__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule);
+    transition: border-color var(--dur-fast) var(--ease-out);
+
+    svg {
+      flex: none;
+      color: var(--text-dim);
+    }
+
+    @include hover {
+      &:hover {
+        border-color: var(--accent);
+      }
+    }
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+
+    li {
+      padding: var(--space-1) var(--space-2);
+      border: 1px solid var(--rule);
+      color: var(--text-dim);
+    }
+  }
+
+  // Loading, empty and error states.
+  &__skeleton {
+    display: grid;
+    gap: var(--space-4);
+    animation: work-pulse 1.4s var(--ease-in-out) infinite;
+  }
+
+  &__skeleton-line {
+    display: block;
+    width: min(100%, 32rem);
+    height: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+
+    &--short {
+      width: 12rem;
+      height: 0.75rem;
+    }
+
+    &--title {
+      width: min(100%, 40rem);
+      height: clamp(2.75rem, 7vw, 6rem);
+    }
+  }
+
+  &__skeleton-fill {
+    display: block;
+    height: 100%;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+  }
+
+  &__state {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-4);
+    max-width: 40rem;
+  }
+
+  &__state-frame {
+    display: grid;
+    place-items: center;
+    width: min(100%, 18rem);
+    aspect-ratio: 3 / 2;
+    margin-bottom: var(--space-3);
+    color: var(--text-dim);
+  }
+}
+
+// Lightbox: full screen native dialog. Ink in both themes, like a darkroom viewer.
+.lightbox {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: var(--space-4) var(--gutter);
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+  display: none;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  opacity: 1;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    overlay var(--dur-base) allow-discrete,
+    display var(--dur-base) allow-discrete;
+
+  &[open] {
+    display: grid;
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  &::backdrop {
+    background: var(--ink);
+  }
+
+  &__bar,
+  &__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+
+    .frame-counter {
+      color: var(--ash);
+    }
+  }
+
+  &__nav {
+    justify-content: center;
+  }
+
+  &__btn {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--ash); // 5.7:1 on Ink
+    font-size: 1.25rem;
+    transition:
+      border-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+
+    @include hover {
+      &:hover {
+        border-color: var(--paper);
+      }
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+
+  &__figure {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    justify-items: center;
+    gap: var(--space-3);
+    min-height: 0;
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  &__caption {
+    @include label;
+    color: var(--ash);
+    text-align: center;
+  }
+}
+
+html:has(.lightbox[open]) {
+  overflow: hidden;
+}
+
+@include reduced-motion {
+  .work__skeleton {
+    animation: none;
+  }
+}
+
+@keyframes work-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}

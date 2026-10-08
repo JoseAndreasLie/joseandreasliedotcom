@@ -1,0 +1,8 @@
+{
+  "name": "joseandreasliedotcom",
+  "version": "1.0.0",
+  "description": "React + Vite portfolio site. SCSS, React Router, Framer Motion, EmailJS contact form, dark/light theme toggle.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

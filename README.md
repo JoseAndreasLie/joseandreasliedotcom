@@ -2,16 +2,24 @@
 
 React + Vite portfolio site. SCSS, React Router, Framer Motion, EmailJS contact form, dark/light theme toggle.
 
+## Layout
+
+- `FE/`: React + Vite site, served at `jose.web.id`
+- `BE/`: Node + Express API, served at `jose.web.id/api` (port 4000)
+
 ## Develop
 
 ```bash
+cd FE
 npm install
 npm run dev
 ```
 
+Vite proxies `/api` to `http://localhost:4000` in dev.
+
 ## Contact form setup
 
-Create an [EmailJS](https://www.emailjs.com/) account, then copy `.env.example` to `.env` and fill in:
+Create an [EmailJS](https://www.emailjs.com/) account, then copy `FE/.env.example` to `FE/.env` and fill in:
 
 ```
 VITE_EMAILJS_SERVICE_ID=
@@ -19,16 +27,8 @@ VITE_EMAILJS_TEMPLATE_ID=
 VITE_EMAILJS_PUBLIC_KEY=
 ```
 
-The template should accept `user_name`, `user_email`, and `message` fields (see `src/pages/Contact.jsx`).
+The template should accept `user_name`, `user_email`, and `message` fields (see `FE/src/pages/Contact.jsx`).
 
-## Deploy to GitHub Pages
+## Deploy
 
-1. Push this repo to GitHub.
-2. If deploying to `https://<user>.github.io/<repo>/` (not a custom domain), set `base: '/<repo>/'` in `vite.config.js`.
-3. Run:
-
-```bash
-npm run deploy
-```
-
-This builds the site and publishes `dist/` to the `gh-pages` branch via the `gh-pages` package.
+FE and API both run on AWS EC2. Caddy serves the `FE/dist` build at `jose.web.id` and reverse proxies `/api/*` to the API on port 4000. See `PORTFOLIO_BRIEF.md` section 5.

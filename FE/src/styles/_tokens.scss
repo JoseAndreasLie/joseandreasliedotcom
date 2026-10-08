@@ -1,0 +1,126 @@
+// Design tokens (PLAN.md 2.4, DESIGN.md). Emits no CSS by itself.
+// In page SCSS: `@use '../../styles/tokens' as *;` then use mixins and CSS vars.
+// Runtime values live as CSS custom properties (emitted in global.scss via `root-tokens`):
+//   palette   --ink --graphite --paper --ash --smoke --signal
+//   semantic  --bg --surface --text --text-dim --accent --rule (swap per [data-theme])
+//   type      --font-display --font-body --font-mono
+//   space     --space-1 (4px) ... --space-10 (128px)
+//   layout    --container --gutter --nav-h
+//   motion    --ease-out --ease-in-out --dur-fast --dur-base --dur-slow --dur-shutter
+
+$ink: #0b0b0c;
+$graphite: #1a1a1c;
+$paper: #eeece7;
+$ash: #8c8a85;
+$smoke: #66645f; // dim text on Paper, 5.0:1
+$signal: #e5482d;
+
+$bp-md: 768px;
+$bp-lg: 1024px;
+
+$spaces: (
+  1: 4px,
+  2: 8px,
+  3: 12px,
+  4: 16px,
+  5: 24px,
+  6: 32px,
+  7: 48px,
+  8: 64px,
+  9: 96px,
+  10: 128px,
+);
+
+@mixin root-tokens {
+  :root {
+    --ink: #{$ink};
+    --graphite: #{$graphite};
+    --paper: #{$paper};
+    --ash: #{$ash};
+    --smoke: #{$smoke};
+    --signal: #{$signal};
+
+    --font-display: 'Newsreader', Georgia, serif;
+    --font-body: 'Schibsted Grotesk', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    @each $k, $v in $spaces {
+      --space-#{$k}: #{$v};
+    }
+
+    --container: 1200px;
+    --gutter: clamp(16px, 4vw, 48px);
+    --nav-h: 64px;
+
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --dur-fast: 150ms;
+    --dur-base: 200ms;
+    --dur-slow: 250ms;
+    --dur-shutter: 500ms;
+  }
+
+  // Dark is the default; light swaps Ink and Paper.
+  :root,
+  [data-theme='dark'] {
+    color-scheme: dark;
+    --bg: var(--ink);
+    --surface: var(--graphite);
+    --text: var(--paper);
+    --text-dim: var(--ash); // 5.7:1 on Ink, 5.0:1 on Graphite
+    --accent: var(--signal);
+    --rule: var(--ash);
+  }
+
+  [data-theme='light'] {
+    color-scheme: light;
+    --bg: var(--paper);
+    --surface: var(--paper);
+    --text: var(--ink);
+    --text-dim: var(--smoke); // 5.0:1 on Paper (Ash is 2.9:1)
+    --accent: var(--signal); // 3.4:1 on Paper: UI and large text only, never small text
+    --rule: var(--ash);
+  }
+}
+
+@mixin md {
+  @media (min-width: $bp-md) {
+    @content;
+  }
+}
+
+@mixin lg {
+  @media (min-width: $bp-lg) {
+    @content;
+  }
+}
+
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}
+
+@mixin hover {
+  @media (hover: hover) and (pointer: fine) {
+    @content;
+  }
+}
+
+// Mono metadata style: uppercase, tracked, small.
+@mixin label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+@mixin container {
+  width: 100%;
+  max-width: calc(var(--container) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}

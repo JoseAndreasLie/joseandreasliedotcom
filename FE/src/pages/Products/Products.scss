@@ -1,0 +1,50 @@
+@use '../../styles/tokens' as *;
+
+.products {
+  display: grid;
+  gap: var(--space-8);
+
+  &__head {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  &__grid {
+    display: grid;
+    gap: var(--space-7) var(--space-6);
+
+    @include md {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include lg {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    > li {
+      animation: product-rise 360ms var(--ease-out) both;
+      animation-delay: calc(var(--i, 0) * 50ms);
+    }
+  }
+}
+
+.product-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+@keyframes product-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@include reduced-motion {
+  .products__grid > li {
+    animation: none;
+  }
+}

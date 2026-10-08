@@ -1,0 +1,157 @@
+@use '../../styles/tokens' as *;
+
+.pd {
+  display: grid;
+  gap: var(--space-8);
+
+  &__head {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+
+  &__tagline {
+    color: var(--text-dim);
+  }
+
+  &__status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-5);
+    margin-top: var(--space-2);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+
+  // Desktop frame takes the width, the phone frame sits beside it at the same height.
+  &__screens {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: minmax(0, 1fr);
+
+    @include md {
+      // 16:10 next to 9:19.5 at equal height: widths in ratio 1.6 : 0.4615.
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.4615fr);
+      align-items: start;
+    }
+  }
+
+  &__shot {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    animation: pd-rise 360ms var(--ease-out) both;
+
+    &--mobile {
+      animation-delay: 60ms;
+      width: min(60%, 240px);
+
+      @include md {
+        width: auto;
+      }
+    }
+  }
+
+  &__frame {
+    padding: var(--space-2);
+
+    .pd__shot--desktop & {
+      aspect-ratio: 16 / 10;
+    }
+
+    .pd__shot--mobile & {
+      aspect-ratio: 9 / 19.5;
+    }
+
+    img,
+    .pd__empty {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: var(--surface);
+      border: 1px solid var(--rule);
+    }
+
+    .pd__empty {
+      padding: var(--space-3);
+      text-align: center;
+    }
+  }
+
+  &__body {
+    display: grid;
+    gap: var(--space-8);
+
+    @include lg {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      gap: var(--space-9);
+    }
+  }
+
+  &__text {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+  }
+
+  &__section {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  &__note {
+    font-size: 0.9375rem;
+  }
+
+  &__spec {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+    margin: 0;
+
+    > div {
+      display: grid;
+      gap: var(--space-2);
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--rule);
+    }
+
+    dd {
+      margin: 0;
+    }
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      color: var(--text);
+    }
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+  }
+}
+
+@keyframes pd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@include reduced-motion {
+  .pd__shot {
+    animation: none;
+  }
+}

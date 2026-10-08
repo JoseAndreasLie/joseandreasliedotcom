@@ -1,0 +1,280 @@
+@use '../../styles/tokens' as *;
+
+// Viewfinder
+.viewfinder {
+  --vf-arm: 14px;
+  --vf-color: var(--text);
+  position: relative;
+  display: block;
+
+  &--active {
+    --vf-color: var(--accent);
+  }
+
+  &__corner {
+    position: absolute;
+    width: var(--vf-arm);
+    height: var(--vf-arm);
+    border: 0 solid var(--vf-color);
+    pointer-events: none;
+    transition: border-color var(--dur-base) var(--ease-out);
+
+    &--tl {
+      top: 0;
+      left: 0;
+      border-top-width: 1px;
+      border-left-width: 1px;
+    }
+
+    &--tr {
+      top: 0;
+      right: 0;
+      border-top-width: 1px;
+      border-right-width: 1px;
+    }
+
+    &--bl {
+      bottom: 0;
+      left: 0;
+      border-bottom-width: 1px;
+      border-left-width: 1px;
+    }
+
+    &--br {
+      bottom: 0;
+      right: 0;
+      border-bottom-width: 1px;
+      border-right-width: 1px;
+    }
+  }
+}
+
+// MetaRow, FrameCounter
+.meta-row,
+.frame-counter {
+  @include label;
+  color: var(--text-dim);
+}
+
+// RecDot
+.rec-dot {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--signal);
+  vertical-align: middle;
+
+  &--pulse {
+    animation: rec-pulse 1.6s var(--ease-in-out) infinite;
+  }
+}
+
+@keyframes rec-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+}
+
+@include reduced-motion {
+  .rec-dot--pulse {
+    animation: none;
+  }
+}
+
+// Rule
+.rule {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 0;
+}
+
+// Logo
+.logo {
+  flex: none;
+}
+
+// Button
+.btn {
+  @include label;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--text);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+
+  @include hover {
+    &:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  // Signal fill carries Ink text in both themes (4.96:1).
+  &--primary {
+    border-color: var(--signal);
+    background: var(--signal);
+    color: var(--ink);
+
+    @include hover {
+      &:hover {
+        background: var(--text);
+        border-color: var(--text);
+        color: var(--bg);
+      }
+    }
+  }
+
+  &--ghost {
+    border-color: transparent;
+    padding-inline: var(--space-3);
+
+    @include hover {
+      &:hover {
+        background: transparent;
+        color: var(--text);
+        border-color: var(--text);
+      }
+    }
+  }
+}
+
+// Section
+.section {
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-8);
+
+  @include md {
+    padding-block: var(--space-9);
+  }
+
+  // #main already pads the top of the page.
+  &:first-child {
+    padding-top: 0;
+  }
+
+  > .rule {
+    margin-bottom: var(--space-2);
+  }
+
+  &__label {
+    color: var(--text-dim);
+  }
+}
+
+// MediaCard
+.media-card {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+
+  &__link {
+    display: grid;
+    gap: var(--space-3);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  &__frame {
+    aspect-ratio: 3 / 2;
+    padding: var(--space-2);
+  }
+
+  &__img,
+  &__empty {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: var(--surface);
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+
+  // Light surface equals the page, so the empty frame keeps a hairline.
+  &__empty {
+    display: block;
+    border: 1px solid var(--rule);
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  &__title {
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  &__summary {
+    color: var(--text-dim);
+    max-width: 60ch;
+  }
+
+  &__link:focus-visible {
+    outline-offset: 6px;
+  }
+
+  &__link:focus-visible .viewfinder {
+    --vf-color: var(--accent);
+  }
+
+  @include hover {
+    &__link:hover .viewfinder {
+      --vf-color: var(--accent);
+    }
+
+    &__link:hover &__img {
+      transform: scale(1.02);
+    }
+  }
+}
+
+// PageTransition shutter: two Graphite blades below the nav, closing then opening.
+.shutter {
+  position: fixed;
+  inset: var(--nav-h) 0 0;
+  z-index: 50;
+  background: var(--graphite);
+  pointer-events: none;
+
+  &--open {
+    transform-origin: 50% 100%;
+  }
+
+  &--close {
+    transform-origin: 50% 0%;
+  }
+}
