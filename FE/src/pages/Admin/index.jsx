@@ -227,38 +227,40 @@ function Dashboard({ onAuthError, onLogout }) {
                       {w.published ? 'Published' : 'Draft'}
                     </span>
                   </td>
-                  <td className="admin-table__actions">
-                    {confirmId === w.id ? (
-                      <>
-                        <span className="t-label">Delete?</span>
-                        <Button
-                          variant="primary"
-                          onClick={() => remove(w)}
-                          disabled={deletingId === w.id}
-                          aria-label={`Confirm delete ${w.title}`}
-                          data-focus={`confirm-${w.id}`}
-                        >
-                          {deletingId === w.id ? 'Deleting' : 'Delete'}
-                        </Button>
-                        <Button variant="ghost" onClick={() => swapFocus(null, `delete-${w.id}`)} disabled={deletingId === w.id}>
-                          Cancel
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button onClick={() => open(w, `edit-${w.id}`)} aria-label={`Edit ${w.title}`} data-focus={`edit-${w.id}`}>
-                          Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          onClick={() => swapFocus(w.id, `confirm-${w.id}`)}
-                          aria-label={`Delete ${w.title}`}
-                          data-focus={`delete-${w.id}`}
-                        >
-                          Delete
-                        </Button>
-                      </>
-                    )}
+                  <td>
+                    <div className="admin-table__actions">
+                      {confirmId === w.id ? (
+                        <>
+                          <span className="t-label">Delete?</span>
+                          <Button
+                            variant="primary"
+                            onClick={() => remove(w)}
+                            disabled={deletingId === w.id}
+                            aria-label={`Confirm delete ${w.title}`}
+                            data-focus={`confirm-${w.id}`}
+                          >
+                            {deletingId === w.id ? 'Deleting' : 'Delete'}
+                          </Button>
+                          <Button variant="ghost" onClick={() => swapFocus(null, `delete-${w.id}`)} disabled={deletingId === w.id}>
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button onClick={() => open(w, `edit-${w.id}`)} aria-label={`Edit ${w.title}`} data-focus={`edit-${w.id}`}>
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => swapFocus(w.id, `confirm-${w.id}`)}
+                            aria-label={`Delete ${w.title}`}
+                            data-focus={`delete-${w.id}`}
+                          >
+                            Delete
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
