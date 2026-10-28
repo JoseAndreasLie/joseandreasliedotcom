@@ -10,7 +10,7 @@ import { uploadRouter } from './upload.js'
 export function createApp({ storage } = {}) {
   const app = express()
   app.disable('x-powered-by')
-  app.set('trust proxy', 1) // behind Caddy: req.ip = real client IP for the login rate limit
+  app.set('trust proxy', 1) // behind nginx: req.ip = real client IP for the login rate limit
   app.use(cors({ origin: process.env.CORS_ORIGIN || false }))
   app.use(express.json({ limit: '1mb' }))
 

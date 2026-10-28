@@ -1,25 +1,18 @@
 #!/usr/bin/env bash
+# Usage: npm run deploy   (needs an `aws` host in ~/.ssh/config; one-time server setup in README)
 set -euo pipefail
+cd "$(dirname "$0")"
 
-ROOT="$(cd "$(dirname "$0")" && pwd)"
-cd "$ROOT"
+APP=/var/www/jose.web.id
 
-# Fall back to EC2_HOST from .env if not exported.
-if [ -z "${EC2_HOST:-}" ] && [ -f .env ]; then
-  EC2_HOST="$(grep -E '^EC2_HOST=' .env | cut -d= -f2- || true)"
-fi
-: "${EC2_HOST:?EC2_HOST is not set (e.g. EC2_HOST=ubuntu@1.2.3.4 ./deploy.sh)}"
+npm --prefix FE ci
+npm --prefix FE run build
 
-(cd FE && npm ci && npm run build)
-
-# Ship tracked files + FE/dist. .env* never shipped (server .env is protected from --delete).
+# Server .env is excluded, so --delete never touches it.
+rsync -az --delete --exclude node_modules --exclude .env --exclude test \
+  BE/ "aws:$APP/server/"
 # Old hashed assets are kept so open tabs don't 404 on lazy chunks.
-rsync -az --delete \
-  --filter='P /FE/dist/assets/**' \
-  --include='/FE/dist/***' \
-  --exclude='.env*' --exclude='.git/' --exclude='.claude/' --exclude='node_modules/' \
-  --exclude="/JoseAndreasLie'sPortfolio.pdf" \
-  --filter=':- .gitignore' \
-  ./ "$EC2_HOST:~/jose.web.id/"
+rsync -az --delete --filter='P assets/**' FE/dist/ "aws:$APP/web/dist/"
 
-ssh "$EC2_HOST" 'cd ~/jose.web.id && docker compose -f docker-compose.yml up -d --build --remove-orphans'
+# npm ci on the server: sharp needs Linux binaries.
+ssh aws "cd $APP/server && npm ci --omit=dev && pm2 restart jose-api"

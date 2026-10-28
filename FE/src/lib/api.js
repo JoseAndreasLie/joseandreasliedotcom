@@ -1,4 +1,4 @@
-// API client (PLAN.md 2.2). All calls are relative: /api in dev via Vite proxy, Caddy in prod.
+// API client (PLAN.md 2.2). All calls are relative: /api in dev via Vite proxy, nginx in prod.
 // Errors: thrown Error with the server's { error } message and `.status` (0 = network).
 // Dev only: public reads (getWorks, getWork) fall back to mocks.js when the API is unreachable.
 

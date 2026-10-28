@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': process.env.API_URL || 'http://localhost:4000',
-      // Prod: Caddy maps /media/* to minio:9000/works/*
+      // Prod: nginx maps /media/* to minio:9000/works/*
       '/media': {
         target: 'http://localhost:9000',
         changeOrigin: true,
