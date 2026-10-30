@@ -1,6 +1,6 @@
 // API client (PLAN.md 2.2). All calls are relative: /api in dev via Vite proxy, nginx in prod.
 // Errors: thrown Error with the server's { error } message and `.status` (0 = network).
-// Dev only: public reads (getWorks, getWork) fall back to mocks.js when the API is unreachable.
+// Dev only: public reads (list, get) fall back to mocks.js when the API is unreachable.
 
 const BASE = '/api'
 const TOKEN_KEY = 'jal_admin_token'
@@ -64,37 +64,41 @@ async function withDevMock(call, mock) {
     // `import.meta.env.DEV &&` is statically false in prod, so mocks never ship.
     if (import.meta.env.DEV && err.status === 0) {
       console.warn('[api] API unreachable, using dev mocks')
-      const { mockWorks } = await import('./mocks.js')
-      return mock(mockWorks)
+      return mock(await import('./mocks.js'))
     }
     throw err
   }
 }
 
+// Resources: 'works' (Behind the Lens: photo + video), 'projects', 'products'.
+// Mirrors BE ordering: works newest first, projects/products by position.
+const HEAVY = { works: 'body', projects: 'body', products: 'writeup' }
+const byOrder = (resource) =>
+  resource === 'works' ? (a, b) => b.date.localeCompare(a.date) : (a, b) => a.position - b.position || (b.year ?? 0) - (a.year ?? 0)
+
 // Public
 
-/** List published works, newest first, without `body`. type: 'video'|'photo'|'project'|'writing' or omitted. */
-export function getWorks({ type } = {}) {
+/** Published rows of a resource, without the heavy text field. works accepts { type: 'video'|'photo' }. */
+export function list(resource, { type } = {}) {
   const qs = type ? `?type=${encodeURIComponent(type)}` : ''
   return withDevMock(
-    () => request(`/works${qs}`),
-    (works) =>
-      works
-        .filter((w) => w.published && (!type || w.type === type))
-        .sort((a, b) => b.date.localeCompare(a.date))
-        // eslint-disable-next-line no-unused-vars
-        .map(({ body, ...rest }) => rest),
+    () => request(`/${resource}${qs}`),
+    (mocks) =>
+      mocks[resource]
+        .filter((r) => r.published && (!type || r.type === type))
+        .sort(byOrder(resource))
+        .map(({ [HEAVY[resource]]: _heavy, ...rest }) => rest), // eslint-disable-line no-unused-vars
   )
 }
 
-/** One published work by slug. Throws status 404 if missing. */
-export function getWork(slug) {
+/** One published row by slug. Throws status 404 if missing. */
+export function get(resource, slug) {
   return withDevMock(
-    () => request(`/works/${encodeURIComponent(slug)}`),
-    (works) => {
-      const w = works.find((x) => x.slug === slug && x.published)
-      if (!w) throw fail('Work not found', 404)
-      return w
+    () => request(`/${resource}/${encodeURIComponent(slug)}`),
+    (mocks) => {
+      const r = mocks[resource].find((x) => x.slug === slug && x.published)
+      if (!r) throw fail('Not found', 404)
+      return r
     },
   )
 }
@@ -112,10 +116,10 @@ export async function login(password) {
   return token
 }
 
-export const getAdminWorks = () => request('/admin/works', { auth: true })
-export const createWork = (work) => request('/works', { method: 'POST', body: work, auth: true })
-export const updateWork = (id, work) => request(`/works/${id}`, { method: 'PUT', body: work, auth: true })
-export const deleteWork = (id) => request(`/works/${id}`, { method: 'DELETE', auth: true })
+export const adminList = (resource) => request(`/admin/${resource}`, { auth: true })
+export const create = (resource, row) => request(`/${resource}`, { method: 'POST', body: row, auth: true })
+export const update = (resource, id, row) => request(`/${resource}/${id}`, { method: 'PUT', body: row, auth: true })
+export const remove = (resource, id) => request(`/${resource}/${id}`, { method: 'DELETE', auth: true })
 
 /** Uploads an image (multipart `file`). onProgress(0..1). Resolves { url, thumb_url }. XHR for upload progress. */
 export function uploadImage(file, onProgress) {

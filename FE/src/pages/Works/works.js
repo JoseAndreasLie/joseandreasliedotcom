@@ -1,5 +1,5 @@
-// Shared by Works and WorkDetail.
-export const TYPES = ['video', 'photo', 'project', 'writing']
+// Shared by Behind the Lens (Works) and WorkDetail.
+export const TYPES = ['photo', 'video']
 
 export const year = (date) => (date ? String(date).slice(0, 4) : null)
 

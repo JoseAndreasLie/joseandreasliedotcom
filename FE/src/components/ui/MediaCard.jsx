@@ -3,7 +3,7 @@ import Viewfinder from './Viewfinder'
 import FrameCounter from './FrameCounter'
 import MetaRow from './MetaRow'
 
-// MediaCard({ to, href?, cover?, alt = '', title, summary?, meta = [], index?, total?, badge?, headingLevel = 3, className }): cover (3:2) in Viewfinder, FrameCounter, title, MetaRow. Whole card is one link (`to` router path or external `href`). No cover renders a neutral frame.
+// MediaCard({ to, href?, cover?, alt = '', title, summary?, meta = [], index?, total?, badge?, headingLevel = 3, className }): cover (3:2) in Viewfinder, FrameCounter, title, MetaRow. Whole card is one link (`to` router path or external `href`). No cover renders the title's initial.
 export default function MediaCard({ to, href, cover, alt = '', title, summary, meta = [], index, total, badge, headingLevel = 3, className = '' }) {
   const H = `h${headingLevel}`
   const LinkTag = href ? 'a' : Link
@@ -15,7 +15,9 @@ export default function MediaCard({ to, href, cover, alt = '', title, summary, m
           {cover ? (
             <img className="media-card__img" src={cover} alt={alt} loading="lazy" decoding="async" />
           ) : (
-            <span className="media-card__empty" aria-hidden="true" />
+            <span className="media-card__empty" aria-hidden="true">
+              {title?.trim()[0]}
+            </span>
           )}
         </Viewfinder>
         <div className="media-card__head">

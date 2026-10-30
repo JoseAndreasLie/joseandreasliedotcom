@@ -1,31 +1,32 @@
 import { useParams } from 'react-router-dom'
-import { Button, MetaRow, Rule, Viewfinder } from '../../components/ui'
-import { getProduct } from '../../data/products'
+import { Button, LoadState, MetaRow, Rule, Viewfinder } from '../../components/ui'
+import { get } from '../../lib/api'
+import { useFetch } from '../../lib/useFetch'
 import ProductBadge from '../Products/ProductBadge'
+import Markdown from '../WorkDetail/Markdown'
 import NotFound from '../NotFound'
 import './ProductDetail.scss'
 
 const SHOTS = [
-  { key: 'desktop', label: 'Desktop', ratio: '16:10' },
-  { key: 'mobile', label: 'Mobile', ratio: '9:19.5' },
+  { key: 'screenshot_desktop', label: 'Desktop', ratio: '16:10' },
+  { key: 'screenshot_mobile', label: 'Mobile', ratio: '9:19.5' },
 ]
 
+// Only uploaded screenshots render: a missing slot is left out, never shown as a placeholder.
 function Screens({ product, mock }) {
+  const shots = SHOTS.filter(({ key }) => product[key])
+  if (!shots.length) return null
   return (
-    <div className="pd__screens">
-      {SHOTS.map(({ key, label, ratio }) => {
-        const src = product.screenshots[key]
+    <div className={`pd__screens pd__screens--${shots.length}`}>
+      {shots.map(({ key, label, ratio }) => {
+        const src = product[key]
         return (
-          <figure key={key} className={`pd__shot pd__shot--${key}`}>
+          <figure key={key} className={`pd__shot pd__shot--${label.toLowerCase()}`}>
             <Viewfinder className="pd__frame">
-              {src ? (
-                <img src={src} alt={`${product.name} on ${label.toLowerCase()}${mock ? ', mock data' : ''}`} loading="lazy" decoding="async" />
-              ) : (
-                <span className="pd__empty t-label t-dim">Screenshot pending</span>
-              )}
+              <img src={src} alt={`${product.name} on ${label.toLowerCase()}${mock ? ', mock data' : ''}`} loading="lazy" decoding="async" />
             </Viewfinder>
             <figcaption className="t-label t-dim">
-              {[label, ratio, src && mock && 'Mock data'].filter(Boolean).join(' · ')}
+              {[label, ratio, mock && 'Mock data'].filter(Boolean).join(' · ')}
             </figcaption>
           </figure>
         )
@@ -36,12 +37,21 @@ function Screens({ product, mock }) {
 
 export default function ProductDetail() {
   const { slug } = useParams()
-  const product = getProduct(slug)
-  if (!product) return <NotFound />
+  const state = useFetch(() => get('products', slug), [slug])
+  if (state.status === 'error' && state.error.status === 404) return <NotFound />
+  if (state.status !== 'ready') {
+    return (
+      <div className="pd container">
+        <title>Products · Jose Andreas Lie</title>
+        <LoadState state={state} noun="This product" />
+      </div>
+    )
+  }
 
-  const cs = product.caseStudy
-  const stack = cs?.stack ?? product.stack
-  const role = cs?.role ?? product.role
+  const product = state.data
+  const cs = product.case_study
+  const isPrivate = product.status === 'Private'
+  const { stack, role } = product
   const sections = cs
     ? [
         ['Problem', cs.problem],
@@ -55,7 +65,7 @@ export default function ProductDetail() {
       <title>{`${product.name} · Jose Andreas Lie`}</title>
       <meta
         name="description"
-        content={cs ? `${product.name}: a private money ledger case study by Jose Andreas Lie. Problem, architecture, stack and role.` : product.summary}
+        content={cs ? `${product.name}: a case study by Jose Andreas Lie. ${product.summary}` : product.summary}
       />
 
       <header className="pd__head">
@@ -80,24 +90,22 @@ export default function ProductDetail() {
         </div>
       </header>
 
-      <Screens product={product} mock={!!cs} />
+      <Screens product={product} mock={isPrivate} />
 
       <Rule />
 
       <div className="pd__body">
         <div className="pd__text prose">
-          {product.writeup.map((para) => (
-            <p key={para.slice(0, 24)}>{para}</p>
-          ))}
+          {product.writeup && <Markdown>{product.writeup}</Markdown>}
           {sections.map(([title, text]) => (
             <section key={title} className="pd__section">
               <h2 className="t-title">{title}</h2>
               <p>{text}</p>
             </section>
           ))}
-          {cs && (
+          {isPrivate && (
             <p className="pd__note t-dim">
-              Echo is confidential. The client, the address and every real figure stay private, and the screens on this page use mock data only.
+              {product.name} is confidential. The client, the address and every real figure stay private, and any screens on this page use mock data only.
             </p>
           )}
         </div>

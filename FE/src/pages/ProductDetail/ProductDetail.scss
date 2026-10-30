@@ -40,6 +40,17 @@
       grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.4615fr);
       align-items: start;
     }
+
+    // A lone mobile shot stays phone sized instead of filling the row.
+    &--1 {
+      @include md {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .pd__shot--mobile {
+        width: min(60%, 280px);
+      }
+    }
   }
 
   &__shot {
@@ -69,20 +80,13 @@
       aspect-ratio: 9 / 19.5;
     }
 
-    img,
-    .pd__empty {
-      display: grid;
-      place-items: center;
+    img {
+      display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
       background: var(--surface);
       border: 1px solid var(--rule);
-    }
-
-    .pd__empty {
-      padding: var(--space-3);
-      text-align: center;
     }
   }
 

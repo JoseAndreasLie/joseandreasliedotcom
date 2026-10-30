@@ -1,4 +1,4 @@
-for (const k of ['JWT_SECRET', 'ADMIN_PASSWORD_HASH']) {
+for (const k of ['DATABASE_URL', 'JWT_SECRET', 'ADMIN_PASSWORD_HASH']) {
   if (!process.env[k]) {
     console.error(`missing required env ${k}`)
     process.exit(1)

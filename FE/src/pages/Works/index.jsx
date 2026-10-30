@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { MediaCard, Viewfinder, Button, Rule } from '../../components/ui'
-import { getWorks } from '../../lib/api'
+import { list } from '../../lib/api'
 import { TYPES, cardMeta } from './works'
 import './Works.scss'
 
@@ -20,7 +20,7 @@ export default function Works() {
   useEffect(() => {
     let live = true
     setState({ status: 'loading' })
-    getWorks({ type: type || undefined }).then(
+    list('works', { type: type || undefined }).then(
       (works) => live && setState({ status: 'ready', works }),
       (error) => live && setState({ status: 'error', error }),
     )
@@ -35,16 +35,18 @@ export default function Works() {
 
   return (
     <div className="works container">
-      <title>{type ? `${label} · Works · Jose Andreas Lie` : 'Works · Jose Andreas Lie'}</title>
-      <meta name="description" content="Video edits, photoshoots, projects and writing by Jose Andreas Lie, newest first." />
+      <title>{type ? `${label} · Behind the Lens · Jose Andreas Lie` : 'Behind the Lens · Jose Andreas Lie'}</title>
+      <meta name="description" content="Behind the Lens: photoshoots and video edits by Jose Andreas Lie, newest first." />
 
       <header className="works__head">
-        <h1 className="t-display">Works</h1>
-        <p className="works__lede">Video edits, photoshoots, projects and writing. Newest frame first.</p>
+        <h1 className="t-display">
+          Behind the <em>Lens</em>
+        </h1>
+        <p className="works__lede">Photoshoots and video edits, away from the keyboard. Newest frame first.</p>
       </header>
 
       <div className="works__bar">
-        <nav aria-label="Filter works by type">
+        <nav aria-label="Filter by photo or video">
           <ul className="works__filters">
             {FILTERS.map(([t, name]) => (
               <li key={name}>
@@ -85,7 +87,7 @@ export default function Works() {
           <Viewfinder className="works__state-frame">
             <p className="t-label">No signal</p>
           </Viewfinder>
-          <h2 className="t-headline">Works could not load.</h2>
+          <h2 className="t-headline">Frames could not load.</h2>
           <p className="t-dim">{state.error.message}</p>
           <Button variant="primary" onClick={() => setAttempt((a) => a + 1)}>
             Try again
@@ -98,9 +100,9 @@ export default function Works() {
           <Viewfinder className="works__state-frame">
             <p className="t-label">FR 000</p>
           </Viewfinder>
-          <h2 className="t-headline">{type ? `No ${type} works yet.` : 'Nothing published yet.'}</h2>
+          <h2 className="t-headline">{type ? `No ${type} frames yet.` : 'Nothing published yet.'}</h2>
           <p className="t-dim">{type ? 'Try another type, or see everything.' : 'New frames land here as they ship.'}</p>
-          {type && <Button to="/works">Show all works</Button>}
+          {type && <Button to="/lens">Show all frames</Button>}
         </div>
       )}
 
@@ -109,7 +111,7 @@ export default function Works() {
           {state.works.map((w, i) => (
             <li key={w.id ?? w.slug} className="works__item" style={{ '--i': Math.min(i, 8) }}>
               <MediaCard
-                to={`/works/${encodeURIComponent(w.slug)}`}
+                to={`/lens/${encodeURIComponent(w.slug)}`}
                 cover={w.cover_url}
                 title={w.title}
                 summary={w.summary}

@@ -1,9 +1,39 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Button } from '../../components/ui'
-import { deleteWork, getAdminWorks, getToken, login, logout } from '../../lib/api'
-import WorkForm from './WorkForm'
+import { useSearchParams } from 'react-router-dom'
+import { adminList, getToken, login, logout, remove as removeRow } from '../../lib/api'
+import EntryForm from './EntryForm'
 import './Admin.scss'
+
+// Tabs, one per resource. cols: [header, cell(row)]; the title and status columns are shared.
+const TABS = {
+  works: {
+    label: 'Behind the Lens',
+    one: 'frame',
+    cols: [
+      ['Type', (r) => r.type],
+      ['Date', (r) => r.date],
+    ],
+  },
+  projects: {
+    label: 'Projects',
+    one: 'project',
+    cols: [
+      ['Year', (r) => r.year ?? '—'],
+      ['Order', (r) => r.position],
+    ],
+  },
+  products: {
+    label: 'Products',
+    one: 'product',
+    cols: [
+      ['Kind', (r) => r.status],
+      ['Order', (r) => r.position],
+    ],
+  },
+}
+const titleOf = (r) => r.title ?? r.name
 
 // Hidden Operate surface: plain, fast, no hero motion. Not in nav; noindex.
 export default function Admin() {
@@ -100,7 +130,10 @@ function Login({ notice, onSuccess }) {
 }
 
 function Dashboard({ onAuthError, onLogout }) {
-  const [works, setWorks] = useState(null)
+  const [params, setParams] = useSearchParams()
+  const resource = Object.hasOwn(TABS, params.get('tab')) ? params.get('tab') : 'works'
+  const tab = TABS[resource]
+  const [rows, setRows] = useState(null)
   const [loadError, setLoadError] = useState('')
   const [editing, setEditing] = useState(null) // null = list, 'new', or a work row
   const [confirmId, setConfirmId] = useState(null)
@@ -116,7 +149,7 @@ function Dashboard({ onAuthError, onLogout }) {
       el.focus()
       focusNext.current = null
     }
-  }, [editing, works, status])
+  }, [editing, rows, status])
 
   const open = (target, trigger) => {
     focusNext.current = `[data-focus="${trigger}"]`
@@ -126,11 +159,19 @@ function Dashboard({ onAuthError, onLogout }) {
   const load = useCallback(async () => {
     setLoadError('')
     try {
-      setWorks(await getAdminWorks())
+      setRows(await adminList(resource))
     } catch (err) {
       if (!onAuthError(err)) setLoadError(err.message)
     }
-  }, [onAuthError])
+  }, [onAuthError, resource])
+
+  const switchTab = (next) => {
+    if (next === resource) return
+    setRows(null)
+    setStatus('')
+    setConfirmId(null)
+    setParams(next === 'works' ? {} : { tab: next }, { replace: true })
+  }
 
   useEffect(() => {
     load()
@@ -140,9 +181,9 @@ function Dashboard({ onAuthError, onLogout }) {
     focusNext.current = '.admin__status'
     setDeletingId(work.id)
     try {
-      await deleteWork(work.id)
-      setWorks((ws) => ws.filter((w) => w.id !== work.id))
-      setStatus(`Deleted “${work.title}”.`)
+      await removeRow(resource, work.id)
+      setRows((ws) => ws.filter((w) => w.id !== work.id))
+      setStatus(`Deleted “${titleOf(work)}”.`)
     } catch (err) {
       if (!onAuthError(err)) setStatus(`Delete failed: ${err.message}`)
     } finally {
@@ -159,13 +200,14 @@ function Dashboard({ onAuthError, onLogout }) {
 
   if (editing) {
     return (
-      <WorkForm
-        work={editing === 'new' ? null : editing}
+      <EntryForm
+        resource={resource}
+        row={editing === 'new' ? null : editing}
         onCancel={() => setEditing(null)}
         onSaved={(saved, isNew) => {
           focusNext.current = '.admin__status'
           setEditing(null)
-          setStatus(`${isNew ? 'Created' : 'Saved'} “${saved.title}”${saved.published ? '' : ' as draft'}.`)
+          setStatus(`${isNew ? 'Created' : 'Saved'} “${titleOf(saved)}”${saved.published ? '' : ' as draft'}.`)
           load()
         }}
       />
@@ -175,10 +217,10 @@ function Dashboard({ onAuthError, onLogout }) {
   return (
     <div className="admin-dash">
       <header className="admin__bar">
-        <h1 className="t-headline">Works</h1>
+        <h1 className="t-headline">Admin</h1>
         <div className="admin__bar-actions">
           <Button variant="primary" onClick={() => open('new', 'new')} data-focus="new">
-            New work
+            New {tab.one}
           </Button>
           <Button variant="ghost" onClick={onLogout}>
             Sign out
@@ -186,27 +228,40 @@ function Dashboard({ onAuthError, onLogout }) {
         </div>
       </header>
 
+      <nav className="admin-tabs" aria-label="Content type">
+        {Object.entries(TABS).map(([key, t]) => (
+          <button key={key} type="button" className="admin-tabs__tab" aria-current={key === resource ? 'page' : undefined} onClick={() => switchTab(key)}>
+            {t.label}
+          </button>
+        ))}
+      </nav>
+
       <p className="admin__status" role="status" aria-live="polite" tabIndex={-1}>
         {status}
       </p>
 
       {loadError && (
         <div className="admin__error" role="alert">
-          <p>Could not load works: {loadError}</p>
+          <p>
+            Could not load {tab.label}: {loadError}
+          </p>
           <Button onClick={load}>Retry</Button>
         </div>
       )}
-      {!works && !loadError && <p className="t-label t-dim">Loading works</p>}
-      {works && works.length === 0 && <p className="t-dim">No works yet. Create the first one.</p>}
+      {!rows && !loadError && <p className="t-label t-dim">Loading {tab.label}</p>}
+      {rows && rows.length === 0 && <p className="t-dim">Nothing here yet. Create the first {tab.one}.</p>}
 
-      {works && works.length > 0 && (
+      {rows && rows.length > 0 && (
         <div className="admin-table__wrap">
           <table className="admin-table">
             <thead>
               <tr>
-                <th scope="col">Title</th>
-                <th scope="col">Type</th>
-                <th scope="col">Date</th>
+                <th scope="col">{resource === 'products' ? 'Name' : 'Title'}</th>
+                {tab.cols.map(([h]) => (
+                  <th key={h} scope="col">
+                    {h}
+                  </th>
+                ))}
                 <th scope="col">Status</th>
                 <th scope="col">
                   <span className="visually-hidden">Actions</span>
@@ -214,17 +269,21 @@ function Dashboard({ onAuthError, onLogout }) {
               </tr>
             </thead>
             <tbody>
-              {works.map((w) => (
+              {rows.map((w) => (
                 <tr key={w.id}>
                   <td>
-                    <span className="admin-table__title">{w.title}</span>
+                    <span className="admin-table__title">{titleOf(w)}</span>
                     <code className="admin-table__slug">{w.slug}</code>
                   </td>
-                  <td className="t-label">{w.type}</td>
-                  <td className="t-label">{w.date}</td>
+                  {tab.cols.map(([h, cell]) => (
+                    <td key={h} className="t-label">
+                      {cell(w)}
+                    </td>
+                  ))}
                   <td>
-                    <span className={`admin-pill${w.published ? ' admin-pill--live' : ''}`}>
-                      {w.published ? 'Published' : 'Draft'}
+                    <span className="admin-table__pills">
+                      <span className={`admin-pill${w.published ? ' admin-pill--live' : ''}`}>{w.published ? 'Published' : 'Draft'}</span>
+                      {w.featured && <span className="admin-pill">Featured</span>}
                     </span>
                   </td>
                   <td>
@@ -236,7 +295,7 @@ function Dashboard({ onAuthError, onLogout }) {
                             variant="primary"
                             onClick={() => remove(w)}
                             disabled={deletingId === w.id}
-                            aria-label={`Confirm delete ${w.title}`}
+                            aria-label={`Confirm delete ${titleOf(w)}`}
                             data-focus={`confirm-${w.id}`}
                           >
                             {deletingId === w.id ? 'Deleting' : 'Delete'}
@@ -247,13 +306,13 @@ function Dashboard({ onAuthError, onLogout }) {
                         </>
                       ) : (
                         <>
-                          <Button onClick={() => open(w, `edit-${w.id}`)} aria-label={`Edit ${w.title}`} data-focus={`edit-${w.id}`}>
+                          <Button onClick={() => open(w, `edit-${w.id}`)} aria-label={`Edit ${titleOf(w)}`} data-focus={`edit-${w.id}`}>
                             Edit
                           </Button>
                           <Button
                             variant="ghost"
                             onClick={() => swapFocus(w.id, `confirm-${w.id}`)}
-                            aria-label={`Delete ${w.title}`}
+                            aria-label={`Delete ${titleOf(w)}`}
                             data-focus={`delete-${w.id}`}
                           >
                             Delete

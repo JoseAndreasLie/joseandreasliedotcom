@@ -1,6 +1,6 @@
 // Shared test setup. Sets env BEFORE importing the app (db.js reads DATABASE_URL at import).
 import { randomBytes, scryptSync } from 'node:crypto'
-import { readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import jwt from 'jsonwebtoken'
 
 export const PASSWORD = 'correct horse'
@@ -12,7 +12,12 @@ process.env.MINIO_BUCKET = 'works'
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgres://localhost/jose_test'
 
 const { createApp } = await import('../src/app.js')
-export const { pool } = await import('../src/db.js')
+export const { sequelize } = await import('../src/db.js')
+// pg-Pool-shaped shim so tests keep writing plain SQL: pool.query('... $1', [v]) -> { rows }.
+export const pool = {
+  query: async (sql, bind) => ({ rows: (await sequelize.query(sql, { bind }))[0] }),
+  end: () => sequelize.close(),
+}
 
 export const token = jwt.sign({ sub: 'admin' }, process.env.JWT_SECRET, { algorithm: 'HS256', expiresIn: '7d' })
 export const auth = { authorization: `Bearer ${token}` }
@@ -35,10 +40,14 @@ export function start(t, opts) {
   return api
 }
 
-// Applies schema; returns a skip reason string if no DB is reachable, else false.
+// Runs the migrations; returns a skip reason string if no DB is reachable, else false.
 export async function dbSkip() {
   try {
-    await pool.query(readFileSync(new URL('../db/schema.sql', import.meta.url), 'utf8'))
+    await sequelize.authenticate()
+    const cli = new URL('../node_modules/sequelize-cli/lib/sequelize', import.meta.url).pathname
+    execFileSync(process.execPath, [cli, 'db:migrate', '--config', 'db/config.cjs', '--migrations-path', 'db/migrations'], {
+      cwd: new URL('..', import.meta.url).pathname, stdio: 'pipe',
+    })
     return false
   } catch (e) {
     await pool.end()

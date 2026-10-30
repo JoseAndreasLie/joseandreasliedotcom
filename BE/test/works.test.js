@@ -141,6 +141,9 @@ describe('works API', { skip }, () => {
   describe('validation (400)', () => {
     const cases = {
       'bad type': { type: 'film' },
+      'project type moved to /api/projects': { type: 'project' },
+      'writing type removed': { type: 'writing' },
+      'featured not boolean': { featured: 1 },
       'bad slug uppercase': { slug: 'Bad-Slug' },
       'bad slug double dash': { slug: 'a--b' },
       'missing title': { title: '' },

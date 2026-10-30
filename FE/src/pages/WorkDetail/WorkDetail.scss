@@ -243,6 +243,20 @@
     gap: var(--space-3);
   }
 
+  &__notes {
+    margin: 0;
+    gap: var(--space-4);
+
+    > div {
+      display: grid;
+      gap: var(--space-1);
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+
   &__links a {
     display: inline-flex;
     align-items: center;

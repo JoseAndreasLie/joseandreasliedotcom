@@ -8,8 +8,9 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env src/index.js",
     "dev": "node --env-file-if-exists=.env --watch src/index.js",
-    "test": "node --test \"test/**/*.test.js\"",
-    "hash-password": "node scripts/hash-password.js"
+    "test": "node --test --test-concurrency=1 \"test/**/*.test.js\"",
+    "hash-password": "node scripts/hash-password.js",
+    "migrate": "node --env-file-if-exists=.env node_modules/sequelize-cli/lib/sequelize db:migrate --config db/config.cjs --migrations-path db/migrations"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -19,6 +20,9 @@
     "minio": "^8.0.7",
     "multer": "^2.4.0",
     "pg": "^8.23.1",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.8",
+    "sequelize-cli": "^6.6.5",
     "sharp": "^0.35.5"
   }
 }

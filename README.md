@@ -15,7 +15,22 @@ npm install
 npm run dev
 ```
 
-Vite proxies `/api` to `http://localhost:4000` in dev.
+Vite proxies `/api` to `http://localhost:4000` in dev. Without the API, public pages fall back to `FE/src/lib/mocks.js`.
+
+API (needs Postgres; copy `BE/.env.example` to `BE/.env`):
+
+```bash
+cd BE
+npm install
+npm run migrate   # Sequelize migrations: works, projects, products (+ seed content)
+npm run dev
+```
+
+Tests: `createdb jose_test && npm test` in `BE` (override with `TEST_DATABASE_URL`).
+
+## Content
+
+Everything is edited at `/admin`: **Behind the Lens** (photo and video, at `/lens`), **Projects** (`/projects`) and **Products** (`/products`). `featured` puts an item on Home, `position` orders projects and products.
 
 ## Contact form setup
 
@@ -59,14 +74,11 @@ Builds the FE locally, rsyncs `BE/` and `FE/dist/` to the `aws` ssh host under `
    mc admin user add local api-uploader <api secret>
    mc admin policy attach local api-put --user api-uploader
    ```
-4. Run `npm run deploy` once (the pm2 restart at the end fails the first time, that's expected), then:
-   ```bash
-   psql -U joselie -h localhost portfolio -f /var/www/jose.web.id/server/db/schema.sql
-   ```
+4. Run `npm run deploy` once to copy the code (it stops at `npm run migrate` the first time because there is no `.env` yet, that's expected).
 5. Create `/var/www/jose.web.id/server/.env` from `BE/.env.example`. Set `DATABASE_URL` with your Postgres password (URL-encode special characters), `JWT_SECRET` (`openssl rand -hex 32`), `ADMIN_PASSWORD_HASH` (`npm run hash-password` in `BE`), `MINIO_ENDPOINT=127.0.0.1`, the `api-uploader` keys, and a free `PORT` (e.g. `4100`). Deploys never overwrite this file.
-6. Start the API once with pm2:
+6. Create the tables (Sequelize migrations in `BE/db/migrations`; every later deploy runs this itself) and start the API once with pm2:
    ```bash
-   cd /var/www/jose.web.id/server && pm2 start npm --name jose-api -- start && pm2 save
+   cd /var/www/jose.web.id/server && npm run migrate && pm2 start npm --name jose-api -- start && pm2 save
    ```
 7. nginx site `/etc/nginx/sites-available/jose.web.id`, symlink into `sites-enabled`, `sudo nginx -t && sudo systemctl reload nginx`, then `sudo certbot --nginx -d jose.web.id`:
    ```nginx

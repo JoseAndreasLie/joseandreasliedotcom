@@ -221,10 +221,17 @@
     transition: transform var(--dur-slow) var(--ease-out);
   }
 
+  // No cover: the title's initial set like a slate, so a card never reads as a broken image.
   // Light surface equals the page, so the empty frame keeps a hairline.
   &__empty {
-    display: block;
+    display: grid;
+    place-items: center;
     border: 1px solid var(--rule);
+    color: var(--text-dim);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(3rem, 8vw, 5rem);
+    line-height: 1;
   }
 
   &__head {
@@ -259,6 +266,23 @@
     &__link:hover &__img {
       transform: scale(1.02);
     }
+  }
+}
+
+// LoadState: loading / error / empty block for API backed lists.
+.load-state {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  max-width: 40rem;
+
+  &__frame {
+    display: grid;
+    place-items: center;
+    width: min(100%, 18rem);
+    aspect-ratio: 3 / 2;
+    margin-bottom: var(--space-3);
+    color: var(--text-dim);
   }
 }
 

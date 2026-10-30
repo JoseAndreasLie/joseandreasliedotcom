@@ -6,7 +6,7 @@ import { Logo } from './ui'
 import './Navbar.scss'
 
 const links = [
-  { to: '/works', label: 'Works' },
+  { to: '/lens', label: 'Behind the Lens' },
   { to: '/products', label: 'Products' },
   { to: '/projects', label: 'Projects' },
   { to: '/about', label: 'About' },

@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { stills } from './stills'
+import { STILL_COUNT } from './stills'
 
 const COLS = 4
 const W = 1.5
@@ -22,12 +22,12 @@ const rand = (i, k) => {
   return x - Math.floor(x)
 }
 
-const rows = Math.ceil(stills.length / COLS)
-const layout = stills.map((s, i) => {
+// Geometry is fixed per slot; the images come in as the `stills` prop.
+const rows = Math.ceil(STILL_COUNT / COLS)
+const layout = Array.from({ length: STILL_COUNT }, (_, i) => {
   const c = i % COLS
   const r = Math.floor(i / COLS)
   return {
-    src: s.src,
     x: (c - (COLS - 1) / 2) * (W + GAP) + (rand(i, 1) - 0.5) * 0.3,
     y: ((rows - 1) / 2 - r) * (H + GAP) + (rand(i, 2) - 0.5) * 0.2,
     z: 0.4 - rand(i, 3) * 2.4,
@@ -148,13 +148,13 @@ function Focus({ color, clock }) {
   )
 }
 
-function Sheet() {
+function Sheet({ stills }) {
   const paletteKey = usePaletteKey()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const palette = useMemo(readPalette, [paletteKey])
   const textures = useMemo(
-    () => layout.map((d, i) => (d.src ? loadStill(d.src) : placeholder(i, palette))),
-    [palette],
+    () => layout.map((_, i) => (stills[i] ? loadStill(stills[i]) : placeholder(i, palette))),
+    [palette, stills],
   )
   useEffect(() => () => textures.forEach((t) => t.dispose()), [textures])
 
@@ -213,7 +213,7 @@ function Sheet() {
   )
 }
 
-export default function HeroScene({ onReady, onLost }) {
+export default function HeroScene({ stills, onReady, onLost }) {
   const wrap = useRef()
   const lostCleanup = useRef()
   const [inView, setInView] = useState(true)
@@ -251,7 +251,7 @@ export default function HeroScene({ onReady, onLost }) {
         gl={{ antialias: true, alpha: true }}
         onCreated={onCreated}
       >
-        <Sheet />
+        <Sheet stills={stills} />
       </Canvas>
     </div>
   )

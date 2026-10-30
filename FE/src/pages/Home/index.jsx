@@ -1,10 +1,11 @@
-import { Component, lazy, Suspense, useEffect, useState, useSyncExternalStore } from 'react'
+import { Component, lazy, Suspense, useMemo, useState, useSyncExternalStore } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, FrameCounter, MediaCard, RecDot, Section, Viewfinder } from '../../components/ui'
-import { getWorks } from '../../lib/api'
-import { products } from '../../data/products'
+import { list } from '../../lib/api'
+import { useFetch } from '../../lib/useFetch'
 import { profile } from '../../data/portfolio'
-import { stills, FOCUS } from './stills'
+import { buildStills, FOCUS } from './stills'
+import ProductBadge from '../Products/ProductBadge'
 import './Home.scss'
 
 // Separate chunk: three + R3F never load on mobile, reduced motion or without WebGL2.
@@ -44,13 +45,13 @@ class SceneBoundary extends Component {
 }
 
 // Static contact sheet: the mobile, reduced motion and no WebGL view, and the placeholder while the 3D chunk loads.
-function StillGrid({ hidden }) {
+function StillGrid({ stills, hidden }) {
   return (
     <div className={`still-grid${hidden ? ' is-hidden' : ''}`}>
-      {stills.map((s, i) => (
+      {stills.map((src, i) => (
         <Viewfinder key={i} className="still-grid__frame" active={i === FOCUS}>
-          {s.src ? (
-            <img className="still-grid__img" src={s.src} alt="" decoding="async" />
+          {src ? (
+            <img className="still-grid__img" src={src} alt="" decoding="async" />
           ) : (
             <span className="still-grid__empty">
               <FrameCounter index={i + 1} />
@@ -66,7 +67,7 @@ function StillGrid({ hidden }) {
 const first = profile.name.split(' ').slice(0, -1).join(' ')
 const last = profile.name.split(' ').at(-1)
 
-function Hero() {
+function Hero({ stills }) {
   const [sceneReady, setSceneReady] = useState(false)
   const [contextLost, setContextLost] = useState(false)
   const use3D = useSyncExternalStore(subscribe, motionAllowed) && hasWebGL2() && !contextLost
@@ -74,11 +75,11 @@ function Hero() {
   return (
     <section className="hero container" aria-labelledby="hero-title">
       <div className="hero__stage" aria-hidden="true">
-        <StillGrid hidden={use3D && sceneReady} />
+        <StillGrid stills={stills} hidden={use3D && sceneReady} />
         {use3D && (
           <SceneBoundary>
             <Suspense fallback={null}>
-              <HeroScene onReady={() => setSceneReady(true)} onLost={() => setContextLost(true)} />
+              <HeroScene stills={stills} onReady={() => setSceneReady(true)} onLost={() => setContextLost(true)} />
             </Suspense>
           </SceneBoundary>
         )}
@@ -93,9 +94,10 @@ function Hero() {
           <RecDot /> Rec · Indonesia · An engineer who also shoots
         </p>
         <div className="hero__actions">
-          <Button to="/works" variant="primary">
-            See the works
+          <Button to="/projects" variant="primary">
+            See the projects
           </Button>
+          <Button to="/lens">Behind the Lens</Button>
           <Button to="/contact">Get in touch</Button>
         </div>
       </div>
@@ -103,27 +105,12 @@ function Hero() {
   )
 }
 
-const workMeta = (w) => [w.date?.slice(0, 4), w.type, w.shot_on]
-
-function FeaturedWorks() {
-  const [state, setState] = useState({ status: 'loading', works: [], total: 0 })
-
-  useEffect(() => {
-    let live = true
-    getWorks()
-      .then((all) => live && setState({ status: 'ok', works: all.slice(0, 3), total: all.length }))
-      .catch(() => live && setState({ status: 'error', works: [], total: 0 }))
-    return () => {
-      live = false
-    }
-  }, [])
-
-  const { status, works, total } = state
-
+// Three cards in a row, with a skeleton, a quiet error line and an "all" link. Shared by every Home section.
+function CardSection({ title, id, state, items, empty, more, render }) {
   return (
-    <Section title="Latest works" id="latest-works">
-      {status === 'loading' && (
-        <ul className="home-grid" aria-busy="true" aria-label="Loading works">
+    <Section title={title} id={id}>
+      {state.status === 'loading' && (
+        <ul className="home-grid" aria-busy="true" aria-label={`Loading ${title.toLowerCase()}`}>
           {[0, 1, 2].map((i) => (
             <li key={i}>
               <Viewfinder className="home-skeleton">
@@ -133,74 +120,41 @@ function FeaturedWorks() {
           ))}
         </ul>
       )}
-      {status === 'error' && (
+      {state.status === 'error' && (
         <p className="home-note">
-          The works feed is offline right now. <Link to="/works">Try the works page</Link> in a moment.
+          This section is offline right now. <Link to={more.to}>Try the full page</Link> in a moment.
         </p>
       )}
-      {status === 'ok' && works.length === 0 && <p className="home-note">No works published yet.</p>}
-      {works.length > 0 && (
+      {state.status === 'ready' && items.length === 0 && <p className="home-note">{empty}</p>}
+      {items.length > 0 && (
         <ul className="home-grid">
-          {works.map((w, i) => (
-            <li key={w.slug}>
-              <MediaCard
-                to={`/works/${w.slug}`}
-                cover={w.cover_url}
-                title={w.title}
-                summary={w.summary}
-                meta={workMeta(w)}
-                index={i + 1}
-                total={total}
-              />
-            </li>
+          {items.map((row, i) => (
+            <li key={row.slug}>{render(row, i)}</li>
           ))}
         </ul>
       )}
       <div className="home-more">
-        <Button to="/works" variant="ghost">
-          All works
+        <Button to={more.to} variant="ghost">
+          {more.label}
         </Button>
       </div>
     </Section>
   )
 }
 
-function FeaturedProducts() {
-  return (
-    <Section title="Live products" id="live-products">
-      <ul className="home-grid">
-        {products.map((p, i) => (
-          <li key={p.slug}>
-            <MediaCard
-              to={`/products/${p.slug}`}
-              cover={p.screenshots?.desktop}
-              alt={p.screenshots?.desktop ? `${p.name} on desktop` : ''}
-              title={p.name}
-              summary={p.summary}
-              meta={[p.status, p.tagline]}
-              index={i + 1}
-              total={products.length}
-              badge={
-                p.badge && (
-                  <span className="home-badge t-label">
-                    <RecDot pulse={false} /> {p.badge}
-                  </span>
-                )
-              }
-            />
-          </li>
-        ))}
-      </ul>
-      <div className="home-more">
-        <Button to="/products" variant="ghost">
-          All products
-        </Button>
-      </div>
-    </Section>
-  )
+// Featured rows first (admin toggle); with none featured, the first three in order.
+const pick = (rows = []) => {
+  const featured = rows.filter((r) => r.featured)
+  return (featured.length ? featured : rows).slice(0, 3)
 }
 
 export default function Home() {
+  const works = useFetch(() => list('works'), [])
+  const projects = useFetch(() => list('projects'), [])
+  const products = useFetch(() => list('products'), [])
+  // Stable identity so the 3D sheet only rebuilds its textures when the covers change.
+  const stills = useMemo(() => buildStills(works.data), [works.data])
+
   return (
     <>
       <title>{`${profile.name} · Engineer who also shoots`}</title>
@@ -208,9 +162,66 @@ export default function Home() {
         name="description"
         content={`${profile.name}: ${profile.titles.join(' and ')} in Indonesia. An engineer who also shoots.`}
       />
-      <Hero />
-      <FeaturedWorks />
-      <FeaturedProducts />
+      <Hero stills={stills} />
+      <CardSection
+        title="Featured projects"
+        id="featured-projects"
+        state={projects}
+        items={pick(projects.data)}
+        empty="No projects published yet."
+        more={{ to: '/projects', label: 'All projects' }}
+        render={(p, i) => (
+          <MediaCard
+            to={`/projects/${p.slug}`}
+            cover={p.cover_url}
+            title={p.title}
+            summary={p.summary}
+            meta={[p.year, p.role]}
+            index={i + 1}
+            total={projects.data.length}
+          />
+        )}
+      />
+      <CardSection
+        title="Behind the Lens"
+        id="behind-the-lens"
+        state={works}
+        items={(works.data ?? []).slice(0, 3)}
+        empty="No frames published yet."
+        more={{ to: '/lens', label: 'All frames' }}
+        render={(w, i) => (
+          <MediaCard
+            to={`/lens/${w.slug}`}
+            cover={w.cover_url}
+            title={w.title}
+            summary={w.summary}
+            meta={[w.date?.slice(0, 4), w.type, w.shot_on]}
+            index={i + 1}
+            total={works.data.length}
+          />
+        )}
+      />
+      <CardSection
+        title="Live products"
+        id="live-products"
+        state={products}
+        items={pick(products.data)}
+        empty="No products published yet."
+        more={{ to: '/products', label: 'All products' }}
+        render={(p, i) => (
+          <MediaCard
+            to={`/products/${p.slug}`}
+            cover={p.screenshot_desktop}
+            alt={p.screenshot_desktop ? `${p.name} on desktop` : ''}
+            title={p.name}
+            summary={p.summary}
+            meta={[p.tagline]}
+            index={i + 1}
+            total={products.data.length}
+            badge={<ProductBadge product={p} />}
+          />
+        )}
+      />
     </>
   )
 }

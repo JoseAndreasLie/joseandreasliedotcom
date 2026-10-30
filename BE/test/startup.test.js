@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 
-const GOOD = { JWT_SECRET: 'a'.repeat(32), ADMIN_PASSWORD_HASH: 'scrypt:00:00' }
+const GOOD = { DATABASE_URL: 'postgres://localhost/unused', JWT_SECRET: 'a'.repeat(32), ADMIN_PASSWORD_HASH: 'scrypt:00:00' }
 const run = (patch) => {
   const env = { ...process.env, ...GOOD, PORT: '0', ...patch }
   for (const k of Object.keys(patch)) if (patch[k] === undefined) delete env[k]
@@ -10,6 +10,7 @@ const run = (patch) => {
 }
 
 const bad = {
+  'DATABASE_URL missing': { DATABASE_URL: undefined },
   'JWT_SECRET missing': { JWT_SECRET: undefined },
   'ADMIN_PASSWORD_HASH missing': { ADMIN_PASSWORD_HASH: undefined },
   'JWT_SECRET shorter than 32': { JWT_SECRET: 'a'.repeat(31) },

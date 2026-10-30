@@ -15,4 +15,5 @@ rsync -az --delete --exclude node_modules --exclude .env --exclude test \
 rsync -az --delete --filter='P assets/**' FE/dist/ "aws:$APP/web/dist/"
 
 # npm ci on the server: sharp needs Linux binaries.
-ssh aws "cd $APP/server && npm ci --omit=dev && pm2 restart jose-api"
+# Migrations run before the restart, so the new code never sees an old schema.
+ssh aws "cd $APP/server && npm ci --omit=dev && npm run migrate && pm2 restart jose-api"

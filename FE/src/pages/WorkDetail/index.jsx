@@ -1,41 +1,44 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import Markdown from 'react-markdown'
 import { FiArrowLeft, FiArrowUpRight } from 'react-icons/fi'
 import { Viewfinder, MetaRow, FrameCounter, Button, Rule } from '../../components/ui'
-import { getWork } from '../../lib/api'
+import { get } from '../../lib/api'
 import { formatDate } from '../Works/works'
 import { safeEmbed, safeHref } from './media'
+import Markdown from './Markdown'
 import Lightbox from './Lightbox'
 import './WorkDetail.scss'
 
 const SITE = 'Jose Andreas Lie'
 
-// Markdown: raw HTML skipped, URLs pass react-markdown's default sanitizer plus safeHref. A body `#` becomes h2 so the page keeps one h1.
-const md = {
-  h1: 'h2',
-  a: ({ href, children }) => {
-    const safe = safeHref(href)
-    if (!safe) return <span>{children}</span>
-    const external = /^https?:/.test(safe)
-    return (
-      <a href={safe} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
-        {children}
-      </a>
-    )
+// Behind the Lens frames and projects share this page; only these bits differ.
+const KINDS = {
+  works: {
+    section: 'Behind the Lens',
+    back: '/lens',
+    backLabel: 'Behind the Lens',
+    browse: 'Browse all frames',
+    meta: (w) => [formatDate(w.date), w.type?.toUpperCase(), w.shot_on],
   },
-  img: ({ src, alt }) => <img src={src} alt={alt || ''} loading="lazy" decoding="async" />,
+  projects: {
+    section: 'Projects',
+    back: '/projects',
+    backLabel: 'All projects',
+    browse: 'Browse all projects',
+    meta: (p) => [p.year, p.company, p.role],
+  },
 }
 
-function BackLink() {
+function BackLink({ kind }) {
   return (
-    <Link className="work__back" to="/works">
-      <FiArrowLeft aria-hidden="true" /> All works
+    <Link className="work__back" to={kind.back}>
+      <FiArrowLeft aria-hidden="true" /> {kind.backLabel}
     </Link>
   )
 }
 
-export default function WorkDetail() {
+export default function WorkDetail({ resource = 'works' }) {
+  const kind = KINDS[resource]
   const { slug } = useParams()
   const [attempt, setAttempt] = useState(0)
   const [state, setState] = useState({ status: 'loading' })
@@ -44,20 +47,20 @@ export default function WorkDetail() {
   useEffect(() => {
     let live = true
     setState({ status: 'loading' })
-    getWork(slug).then(
+    get(resource, slug).then(
       (work) => live && setState({ status: 'ready', work }),
       (error) => live && setState({ status: 'error', error }),
     )
     return () => {
       live = false
     }
-  }, [slug, attempt])
+  }, [resource, slug, attempt])
 
   if (state.status === 'loading') {
     return (
       <div className="work container" aria-busy="true">
-        <title>{`Works · ${SITE}`}</title>
-        <BackLink />
+        <title>{`${kind.section} · ${SITE}`}</title>
+        <BackLink kind={kind} />
         <p className="visually-hidden" role="status">
           Loading work
         </p>
@@ -77,18 +80,18 @@ export default function WorkDetail() {
     const missing = state.error.status === 404
     return (
       <div className="work container">
-        <title>{`${missing ? 'Not found' : 'Error'} · Works · ${SITE}`}</title>
-        <BackLink />
+        <title>{`${missing ? 'Not found' : 'Error'} · ${kind.section} · ${SITE}`}</title>
+        <BackLink kind={kind} />
         <div className="work__state">
           <Viewfinder className="work__state-frame">
             <p className="t-label">{missing ? 'FR 404' : 'No signal'}</p>
           </Viewfinder>
-          <h1 className="t-headline">{missing ? 'This frame does not exist.' : 'This work could not load.'}</h1>
+          <h1 className="t-headline">{missing ? 'This frame does not exist.' : 'This page could not load.'}</h1>
           <p className="t-dim">
             {missing ? 'It may have been moved, renamed or taken down.' : state.error.message}
           </p>
           {missing ? (
-            <Button to="/works">Browse all works</Button>
+            <Button to={kind.back}>{kind.browse}</Button>
           ) : (
             <Button variant="primary" onClick={() => setAttempt((a) => a + 1)}>
               Try again
@@ -105,17 +108,17 @@ export default function WorkDetail() {
   const images = media.filter((m) => m?.kind === 'image' && m.url)
   const links = (w.links || []).map((l) => ({ ...l, url: safeHref(l?.url) })).filter((l) => l.url)
   const tags = (w.tags || []).filter(Boolean)
-  const date = formatDate(w.date)
+  const notes = (w.notes || []).filter((n) => n?.label && n.text)
 
   return (
     <article className="work container">
-      <title>{`${w.title} · Works · ${SITE}`}</title>
+      <title>{`${w.title} · ${kind.section} · ${SITE}`}</title>
       {w.summary && <meta name="description" content={w.summary} />}
 
-      <BackLink />
+      <BackLink kind={kind} />
 
       <header className="work__head">
-        <MetaRow items={[date, w.type?.toUpperCase(), w.shot_on]} />
+        <MetaRow items={kind.meta(w)} />
         <h1 className="t-display work__title">{w.title}</h1>
         {w.summary && <p className="work__summary">{w.summary}</p>}
       </header>
@@ -175,16 +178,24 @@ export default function WorkDetail() {
       <div className="work__body">
         {w.body ? (
           <div className="work__prose prose">
-            <Markdown skipHtml components={md}>
-              {w.body}
-            </Markdown>
+            <Markdown>{w.body}</Markdown>
           </div>
         ) : (
           <div />
         )}
 
-        {(links.length > 0 || tags.length > 0) && (
-          <aside className="work__side" aria-label="Links and tags">
+        {(notes.length > 0 || links.length > 0 || tags.length > 0) && (
+          <aside className="work__side" aria-label="Details">
+            {notes.length > 0 && (
+              <dl className="work__group work__notes">
+                {notes.map((n) => (
+                  <div key={n.label}>
+                    <dt className="t-label t-dim">{n.label}</dt>
+                    <dd>{n.text}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
             {links.length > 0 && (
               <div className="work__group">
                 <h2 className="t-label t-dim">Links</h2>

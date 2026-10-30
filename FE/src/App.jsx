@@ -1,5 +1,5 @@
 import { Component, lazy, Suspense } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Navigate, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { ThemeProvider } from './context/ThemeContext'
 import Navbar from './components/Navbar'
@@ -11,6 +11,7 @@ const About = lazy(() => import('./pages/About'))
 const Projects = lazy(() => import('./pages/Projects'))
 const Products = lazy(() => import('./pages/Products'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
+const ProjectDetail = lazy(() => import('./pages/WorkDetail/ProjectDetail'))
 const Works = lazy(() => import('./pages/Works'))
 const WorkDetail = lazy(() => import('./pages/WorkDetail'))
 const Contact = lazy(() => import('./pages/Contact'))
@@ -21,10 +22,11 @@ const routes = [
   ['/', Home],
   ['/about', About],
   ['/projects', Projects],
+  ['/projects/:slug', ProjectDetail],
   ['/products', Products],
   ['/products/:slug', ProductDetail],
-  ['/works', Works],
-  ['/works/:slug', WorkDetail],
+  ['/lens', Works],
+  ['/lens/:slug', WorkDetail],
   ['/contact', Contact],
   ['/admin', Admin],
   ['*', NotFound],
@@ -60,6 +62,11 @@ function onRouteSwap() {
 
 export default function App() {
   const location = useLocation()
+
+  // Old /works URLs (shared links, the CV) land on Behind the Lens. Redirected here, outside the
+  // page transition: a Navigate inside AnimatePresence mode="wait" leaves a blank page.
+  const old = /^\/works(\/.*)?$/.exec(location.pathname)
+  if (old) return <Navigate to={{ pathname: `/lens${old[1] ?? ''}`, search: location.search }} replace />
 
   return (
     <ThemeProvider>
