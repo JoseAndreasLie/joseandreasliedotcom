@@ -1,6 +1,6 @@
 {
   "name": "joseandreasliedotcom",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "React + Vite portfolio site. SCSS, React Router, Framer Motion, EmailJS contact form, dark/light theme toggle.",
   "scripts": {
     "deploy": "./deploy.sh",
