@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { FiArrowLeft, FiArrowUpRight } from 'react-icons/fi'
 import { Viewfinder, MetaRow, FrameCounter, Button, Rule } from '../../components/ui'
 import { get } from '../../lib/api'
+import { useFetch } from '../../lib/useFetch'
+import { SITE } from '../../data/portfolio'
 import { formatDate } from '../Works/works'
-import { safeEmbed, safeHref } from './media'
-import Markdown from './Markdown'
+import { safeEmbed, safeHref } from '../../lib/media'
+import Markdown from '../../lib/Markdown'
 import Lightbox from './Lightbox'
 import './WorkDetail.scss'
-
-const SITE = 'Jose Andreas Lie'
 
 // Behind the Lens frames and projects share this page; only these bits differ.
 const KINDS = {
@@ -17,7 +17,7 @@ const KINDS = {
     section: 'Behind the Lens',
     back: '/lens',
     backLabel: 'Behind the Lens',
-    browse: 'Browse all frames',
+    browse: 'Browse all photos and videos',
     meta: (w) => [formatDate(w.date), w.type?.toUpperCase(), w.shot_on],
   },
   projects: {
@@ -40,21 +40,8 @@ function BackLink({ kind }) {
 export default function WorkDetail({ resource = 'works' }) {
   const kind = KINDS[resource]
   const { slug } = useParams()
-  const [attempt, setAttempt] = useState(0)
-  const [state, setState] = useState({ status: 'loading' })
+  const state = useFetch(() => get(resource, slug), [resource, slug])
   const [open, setOpen] = useState(null)
-
-  useEffect(() => {
-    let live = true
-    setState({ status: 'loading' })
-    get(resource, slug).then(
-      (work) => live && setState({ status: 'ready', work }),
-      (error) => live && setState({ status: 'error', error }),
-    )
-    return () => {
-      live = false
-    }
-  }, [resource, slug, attempt])
 
   if (state.status === 'loading') {
     return (
@@ -84,16 +71,16 @@ export default function WorkDetail({ resource = 'works' }) {
         <BackLink kind={kind} />
         <div className="work__state">
           <Viewfinder className="work__state-frame">
-            <p className="t-label">{missing ? 'FR 404' : 'No signal'}</p>
+            <p className="t-label">{missing ? '404' : 'Could not load'}</p>
           </Viewfinder>
-          <h1 className="t-headline">{missing ? 'This frame does not exist.' : 'This page could not load.'}</h1>
+          <h1 className="t-headline">{missing ? 'This page does not exist.' : 'This page could not load.'}</h1>
           <p className="t-dim">
             {missing ? 'It may have been moved, renamed or taken down.' : state.error.message}
           </p>
           {missing ? (
             <Button to={kind.back}>{kind.browse}</Button>
           ) : (
-            <Button variant="primary" onClick={() => setAttempt((a) => a + 1)}>
+            <Button variant="primary" onClick={state.retry}>
               Try again
             </Button>
           )}
@@ -102,7 +89,7 @@ export default function WorkDetail({ resource = 'works' }) {
     )
   }
 
-  const w = state.work
+  const w = state.data
   const media = Array.isArray(w.media) ? w.media : []
   const embeds = media.map((m) => m?.kind === 'embed' && safeEmbed(m.url)).filter(Boolean)
   const images = media.filter((m) => m?.kind === 'image' && m.url)
@@ -232,6 +219,14 @@ export default function WorkDetail({ resource = 'works' }) {
             )}
           </aside>
         )}
+      </div>
+
+      <Rule />
+      <div className="page-actions">
+        <Button to={kind.back}>{kind.browse}</Button>
+        <Button variant="primary" to="/contact">
+          Get in touch
+        </Button>
       </div>
 
       {open !== null && (

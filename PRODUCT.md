@@ -1,5 +1,7 @@
 # Product
 
+> Historical product brief from the October 2026 rebuild. Parts are out of date (Docker, Caddy, `/works` routes). `README.md` is current.
+
 <!-- impeccable:product-schema 1 -->
 
 > Written by `impeccable init` in a non-interactive session. No question tool was available, so every fact below is taken from `PORTFOLIO_BRIEF.md` (source of truth) and `PLAN.md`. Items marked *(inferred)* are reasonable readings of the brief, not confirmed answers. Items marked *(open)* are undecided.

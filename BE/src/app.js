@@ -29,13 +29,13 @@ export function createApp({ storage } = {}) {
 
   // Admin routes inside each router apply requireAuth themselves.
   app.use('/api', crud({
-    Model: Work, path: 'works', validate: validateWork, heavy: ['body'], keepIfNull: ['date'],
+    Model: Work, path: 'works', validate: validateWork, heavy: ['body', 'media', 'links'], keepIfNull: ['date'],
     order: [['date', 'DESC'], ['id', 'DESC']],
     filter: ({ type }) => (type === undefined || type === '' ? {}
       : TYPES.includes(type) ? { where: { type } } : { error: `type must be one of ${TYPES.join(', ')}` }),
   }))
   const byPosition = [['position', 'ASC'], ['year', 'DESC NULLS LAST'], ['id', 'ASC']]
-  app.use('/api', crud({ Model: Project, path: 'projects', validate: validateProject, heavy: ['body'], order: byPosition }))
+  app.use('/api', crud({ Model: Project, path: 'projects', validate: validateProject, heavy: ['body', 'media', 'links'], order: byPosition }))
   app.use('/api', crud({ Model: Product, path: 'products', validate: validateProduct, heavy: ['writeup'], order: byPosition }))
   app.use('/api', uploadRouter(storage))
   app.use('/api', (req, res) => res.status(404).json({ error: 'not found' }))

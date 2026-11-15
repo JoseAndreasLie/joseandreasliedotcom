@@ -1,5 +1,5 @@
-import { LoadState, MediaCard } from '../../components/ui'
-import ProductBadge from './ProductBadge'
+import { LoadState, MediaCard, ProductBadge } from '../../components/ui'
+import { SITE } from '../../data/portfolio'
 import { list } from '../../lib/api'
 import { useFetch } from '../../lib/useFetch'
 import './Products.scss'
@@ -10,7 +10,7 @@ export default function Products() {
 
   return (
     <div className="products container">
-      <title>Live Products · Jose Andreas Lie</title>
+      <title>{`Live Products · ${SITE}`}</title>
       <meta
         name="description"
         content="Live products by Jose Andreas Lie: small tools built for real groups, and private software running in production for clients."

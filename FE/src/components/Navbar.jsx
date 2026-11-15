@@ -6,10 +6,10 @@ import { Logo } from './ui'
 import './Navbar.scss'
 
 const links = [
-  { to: '/lens', label: 'Behind the Lens' },
-  { to: '/products', label: 'Products' },
   { to: '/projects', label: 'Projects' },
+  { to: '/products', label: 'Products' },
   { to: '/about', label: 'About' },
+  { to: '/lens', label: 'Behind the Lens' },
   { to: '/contact', label: 'Contact' },
 ]
 

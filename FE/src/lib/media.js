@@ -17,6 +17,9 @@ export function safeEmbed(url) {
   }
 }
 
+/** '/media/x.webp' -> '/media/x_thumb.webp' (the 600px file BE/src/upload.js writes next to every upload). Other URLs pass through. */
+export const thumbOf = (url) => (/^\/media\/[\w-]+\.webp$/.test(url ?? '') && !url.endsWith('_thumb.webp') ? url.replace(/\.webp$/, '_thumb.webp') : url)
+
 /** Same origin paths and http(s)/mailto URLs pass; anything else (javascript:, data:, //host, /\host) is null. */
 export function safeHref(url) {
   if (typeof url !== 'string') return null

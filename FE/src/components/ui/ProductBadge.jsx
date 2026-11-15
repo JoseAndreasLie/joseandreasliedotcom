@@ -1,7 +1,6 @@
-import { RecDot } from '../../components/ui'
-import './Products.scss'
+import RecDot from './RecDot'
 
-// Shared with ProductDetail: live status reads as a REC light, Echo carries its private badge.
+// ProductBadge({ product }): live status reads as a REC light, Echo carries its private badge.
 export default function ProductBadge({ product }) {
   return (
     <span className="product-badge t-label">

@@ -1,9 +1,11 @@
 {
   "name": "joseandreasliedotcom",
   "version": "1.1.0",
-  "description": "React + Vite portfolio site. SCSS, React Router, Framer Motion, EmailJS contact form, dark/light theme toggle.",
+  "description": "React + Vite portfolio site. SCSS, React Router, Three.js hero, EmailJS contact form, dark/light theme toggle.",
   "scripts": {
     "deploy": "./deploy.sh",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "npm --prefix FE run lint",
+    "build": "npm --prefix FE run build",
+    "test": "npm --prefix FE test && npm --prefix BE test"
   }
 }

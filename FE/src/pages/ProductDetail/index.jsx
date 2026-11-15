@@ -1,9 +1,9 @@
 import { useParams } from 'react-router-dom'
-import { Button, LoadState, MetaRow, Rule, Viewfinder } from '../../components/ui'
+import { Button, LoadState, MetaRow, ProductBadge, Rule, Viewfinder } from '../../components/ui'
+import { SITE } from '../../data/portfolio'
 import { get } from '../../lib/api'
 import { useFetch } from '../../lib/useFetch'
-import ProductBadge from '../Products/ProductBadge'
-import Markdown from '../WorkDetail/Markdown'
+import Markdown from '../../lib/Markdown'
 import NotFound from '../NotFound'
 import './ProductDetail.scss'
 
@@ -42,7 +42,7 @@ export default function ProductDetail() {
   if (state.status !== 'ready') {
     return (
       <div className="pd container">
-        <title>Products · Jose Andreas Lie</title>
+        <title>{`Products · ${SITE}`}</title>
         <LoadState state={state} noun="This product" />
       </div>
     )
@@ -62,7 +62,7 @@ export default function ProductDetail() {
 
   return (
     <article className="pd container">
-      <title>{`${product.name} · Jose Andreas Lie`}</title>
+      <title>{`${product.name} · ${SITE}`}</title>
       <meta
         name="description"
         content={cs ? `${product.name}: a case study by Jose Andreas Lie. ${product.summary}` : product.summary}
@@ -141,6 +141,14 @@ export default function ProductDetail() {
             </div>
           )}
         </dl>
+      </div>
+
+      <Rule />
+      <div className="page-actions">
+        <Button to="/products">All products</Button>
+        <Button variant="primary" to="/contact">
+          Get in touch
+        </Button>
       </div>
     </article>
   )

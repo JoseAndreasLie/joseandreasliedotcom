@@ -1,5 +1,5 @@
 import { Button, MetaRow, RecDot, Section } from '../../components/ui'
-import { education, experience, organizations, profile, skills } from '../../data/portfolio'
+import { education, experience, organizations, profile, skills, SITE } from '../../data/portfolio'
 import './About.scss'
 
 function Timeline({ entries }) {
@@ -32,7 +32,7 @@ function Timeline({ entries }) {
 export default function About() {
   return (
     <div className="about">
-      <title>About · Jose Andreas Lie</title>
+      <title>{`About · ${SITE}`}</title>
       <meta
         name="description"
         content={`About ${profile.name}: ${profile.titles.join(' and ')} in ${profile.location}. Experience, skills, education and CV.`}

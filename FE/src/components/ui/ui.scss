@@ -269,6 +269,15 @@
   }
 }
 
+// ProductBadge
+.product-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text);
+  white-space: nowrap;
+}
+
 // LoadState: loading / error / empty block for API backed lists.
 .load-state {
   display: grid;
@@ -286,19 +295,22 @@
   }
 }
 
-// PageTransition shutter: two Graphite blades below the nav, closing then opening.
+// PageTransition shutter: one Graphite blade below the nav, opening over the new page.
 .shutter {
   position: fixed;
   inset: var(--nav-h) 0 0;
   z-index: 50;
   background: var(--graphite);
   pointer-events: none;
+  transform-origin: 50% 100%;
+  animation: shutter-open var(--dur-slow) var(--ease-in-out) both;
+}
 
-  &--open {
-    transform-origin: 50% 100%;
+@keyframes shutter-open {
+  from {
+    transform: scaleY(1);
   }
-
-  &--close {
-    transform-origin: 50% 0%;
+  to {
+    transform: scaleY(0);
   }
 }

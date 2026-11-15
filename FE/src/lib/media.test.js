@@ -1,7 +1,14 @@
-// Run: node --test src/pages/WorkDetail/media.test.js
+// Run: npm test
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { safeEmbed, safeHref } from './media.js'
+import { safeEmbed, safeHref, thumbOf } from './media.js'
+
+test('thumbOf maps our own /media webp to its thumb and leaves everything else alone', () => {
+  assert.equal(thumbOf('/media/abc-123.webp'), '/media/abc-123_thumb.webp')
+  assert.equal(thumbOf('/media/abc_thumb.webp'), '/media/abc_thumb.webp')
+  assert.equal(thumbOf('https://example.com/a.webp'), 'https://example.com/a.webp')
+  assert.equal(thumbOf(null), null)
+})
 
 test('safeEmbed allows only https YouTube /embed/ and Vimeo player /video/', () => {
   for (const ok of [

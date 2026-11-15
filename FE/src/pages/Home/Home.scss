@@ -64,6 +64,29 @@
     margin-top: var(--space-2);
   }
 
+  // GitHub, LinkedIn, Email: same mono text links as the footer.
+  &__links {
+    display: flex;
+    flex-wrap: wrap;
+    margin-inline: calc(-1 * var(--space-3));
+
+    a {
+      @include label;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding-inline: var(--space-3);
+      color: var(--text-dim);
+      transition: color var(--dur-fast) var(--ease-out);
+
+      @include hover {
+        &:hover {
+          color: var(--text);
+        }
+      }
+    }
+  }
+
   // One authored entrance: the copy develops in after the frames, short stagger.
   &__copy > * {
     animation: hero-in 700ms var(--ease-out) both;
@@ -83,6 +106,10 @@
 
   &__actions {
     animation-delay: 320ms;
+  }
+
+  &__links {
+    animation-delay: 400ms;
   }
 }
 
@@ -187,8 +214,10 @@
 .home-note {
   color: var(--text-dim);
 
-  a {
+  button {
+    min-height: 44px;
     color: var(--text);
+    text-decoration: underline;
     text-underline-offset: 3px;
   }
 }
@@ -198,9 +227,3 @@
   justify-content: flex-end;
 }
 
-.home-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--text-dim);
-}

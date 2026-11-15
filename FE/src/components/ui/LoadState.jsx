@@ -16,7 +16,7 @@ export default function LoadState({ state, empty, noun }) {
   return (
     <div className="load-state">
       <Viewfinder className="load-state__frame">
-        <p className="t-label">{failed ? 'No signal' : 'FR 000'}</p>
+        <p className="t-label">{failed ? 'Could not load' : 'Nothing here yet'}</p>
       </Viewfinder>
       <h2 className="t-headline">{failed ? `${noun} could not load.` : empty}</h2>
       {failed && (

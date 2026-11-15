@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import Viewfinder from './Viewfinder'
 import FrameCounter from './FrameCounter'
 import MetaRow from './MetaRow'
+import { thumbOf } from '../../lib/media'
 
 // MediaCard({ to, href?, cover?, alt = '', title, summary?, meta = [], index?, total?, badge?, headingLevel = 3, className }): cover (3:2) in Viewfinder, FrameCounter, title, MetaRow. Whole card is one link (`to` router path or external `href`). No cover renders the title's initial.
 export default function MediaCard({ to, href, cover, alt = '', title, summary, meta = [], index, total, badge, headingLevel = 3, className = '' }) {
@@ -13,7 +14,15 @@ export default function MediaCard({ to, href, cover, alt = '', title, summary, m
       <LinkTag className="media-card__link" {...linkProps}>
         <Viewfinder className="media-card__frame">
           {cover ? (
-            <img className="media-card__img" src={cover} alt={alt} loading="lazy" decoding="async" />
+            <img
+              className="media-card__img"
+              src={thumbOf(cover)}
+              srcSet={thumbOf(cover) === cover ? undefined : `${thumbOf(cover)} 600w, ${cover} 1600w`}
+              sizes="(min-width: 768px) 33vw, 100vw"
+              alt={alt}
+              loading="lazy"
+              decoding="async"
+            />
           ) : (
             <span className="media-card__empty" aria-hidden="true">
               {title?.trim()[0]}

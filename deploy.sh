@@ -5,7 +5,11 @@ cd "$(dirname "$0")"
 
 APP=/var/www/jose.web.id
 
+git diff --quiet HEAD || { echo "uncommitted changes: commit or stash before deploying" >&2; exit 1; }
+
 npm --prefix FE ci
+npm --prefix FE run lint
+npm --prefix FE test
 npm --prefix FE run build
 
 # Server .env is excluded, so --delete never touches it.
@@ -17,3 +21,10 @@ rsync -az --delete --filter='P assets/**' FE/dist/ "aws:$APP/web/dist/"
 # npm ci on the server: sharp needs Linux binaries.
 # Migrations run before the restart, so the new code never sees an old schema.
 ssh aws "cd $APP/server && npm ci --omit=dev && npm run migrate && pm2 restart jose-api"
+
+# Smoke test: fail the deploy loudly if the API or the site is not answering.
+sleep 3
+for path in /api/health /api/works /api/projects /api/products /; do
+  curl -fsS -o /dev/null "https://jose.web.id$path" || { echo "smoke test failed: $path" >&2; exit 1; }
+done
+echo "deployed and smoke tested"
