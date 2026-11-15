@@ -6,7 +6,7 @@ const isId = (s) => /^\d{1,9}$/.test(s)
 
 /**
  * Public + admin REST routes for one model, mounted under /api.
- *   GET  /{path}            published rows, list columns (no `heavy` fields). `filter(query)` -> { where } | { error }
+ *   GET  /{path}            published rows, list columns (no `heavy` fields: long text, galleries, links). `filter(query)` -> { where } | { error }
  *   GET  /{path}/:slug      one published row
  *   GET  /admin/{path}      every row, full
  *   POST /{path}, PUT /{path}/:id, DELETE /{path}/:id   (requireAuth)

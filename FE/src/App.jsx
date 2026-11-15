@@ -1,6 +1,5 @@
-import { Component, lazy, Suspense } from 'react'
+import { Component, lazy, Suspense, useEffect, useRef } from 'react'
 import { Navigate, Routes, Route, useLocation } from 'react-router-dom'
-import { AnimatePresence } from 'framer-motion'
 import { ThemeProvider } from './context/ThemeContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -54,17 +53,21 @@ class PageBoundary extends Component {
   }
 }
 
-// After the old page has left: jump to top and move focus to main for screen readers.
-function onRouteSwap() {
-  window.scrollTo({ top: 0, behavior: 'instant' })
-  document.getElementById('main')?.focus({ preventScroll: true })
-}
-
 export default function App() {
   const location = useLocation()
 
-  // Old /works URLs (shared links, the CV) land on Behind the Lens. Redirected here, outside the
-  // page transition: a Navigate inside AnimatePresence mode="wait" leaves a blank page.
+  // On every route change after the first page: jump to top and move focus to main for screen readers.
+  const firstPage = useRef(true)
+  useEffect(() => {
+    if (firstPage.current) {
+      firstPage.current = false
+      return
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    document.getElementById('main')?.focus({ preventScroll: true })
+  }, [location.pathname])
+
+  // Old /works URLs (shared links, the CV) land on Behind the Lens.
   const old = /^\/works(\/.*)?$/.exec(location.pathname)
   if (old) return <Navigate to={{ pathname: `/lens${old[1] ?? ''}`, search: location.search }} replace />
 
@@ -74,8 +77,7 @@ export default function App() {
         <a className="skip-link" href="#main">Skip to content</a>
         <Navbar />
         <main id="main" tabIndex={-1}>
-          <AnimatePresence mode="wait" initial={false} onExitComplete={onRouteSwap}>
-            <Routes location={location} key={location.pathname}>
+          <Routes location={location} key={location.pathname}>
               {routes.map(([path, Page]) => (
                 <Route
                   key={path}
@@ -91,8 +93,7 @@ export default function App() {
                   }
                 />
               ))}
-            </Routes>
-          </AnimatePresence>
+          </Routes>
         </main>
         <Footer />
       </div>

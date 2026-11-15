@@ -9,7 +9,7 @@ if (skip) console.log(`SKIP content tests: ${skip}`)
 const resources = {
   projects: {
     valid: (o = {}) => ({ slug: 'antarbul', title: 'AntarBul', ...o }),
-    heavy: 'body',
+    heavy: ['body', 'media', 'links'],
     full: {
       year: 2025, company: 'Hex & Code', role: 'Lead Backend Engineer', summary: 's', body: '# b',
       cover_url: '/media/c.webp', tags: ['Node.js'], notes: [{ label: 'Key insight', text: 't' }],
@@ -25,7 +25,7 @@ const resources = {
   },
   products: {
     valid: (o = {}) => ({ slug: 'splitter', name: 'Splitter', ...o }),
-    heavy: 'writeup',
+    heavy: ['writeup'],
     full: {
       tagline: 't', url: 'https://splitter.jose.web.id', status: 'Live', stack: ['React'], role: 'r', summary: 's',
       writeup: 'para one\n\npara two', screenshot_desktop: '/media/d.webp', screenshot_mobile: '/media/m.webp',
@@ -64,7 +64,7 @@ describe('content API', { skip }, () => {
         assert.equal(u.status, 200, u.body?.error)
         const list = (await api(`/api/${path}`)).body
         assert.equal(list.length, 1)
-        assert.ok(!(r.heavy in list[0]))
+        for (const k of r.heavy) assert.ok(!(k in list[0]), k)
         const one = await api(`/api/${path}/${c.body.slug}`)
         assert.equal(one.status, 200)
         for (const [k, v] of Object.entries(r.full)) assert.deepEqual(one.body[k], v, k)

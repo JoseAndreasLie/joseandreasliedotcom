@@ -2,8 +2,7 @@ export const profile = {
   name: 'Jose Andreas Lie',
   // Confirmed title line. Render joined with ' · '.
   titles: ['Project Manager', 'Fullstack Developer'],
-  tagline: 'Growth, problem solving, open mindedness',
-  bio: "I'm a lifetime learner with a T shaped skill set: deep in backend engineering, broad enough to design, build mobile apps and lead a team. I'm an alumnus of the Apple Developer Academy and work as a project manager and fullstack developer, building scalable systems with Node.js and PostgreSQL.",
+  bio: "I'm a project manager and fullstack developer, deepest in backend engineering with Node.js and PostgreSQL. I have shipped HRIS payroll modules with client teams, built three live products, and I'm an alumnus of the Apple Developer Academy.",
   extendedBio:
     "I specialize in scalable backend systems and deployment, using my full stack knowledge in Figma, React, and Mobile to bridge the gap between complex logic and great user experience. I'm fueled by problem solving and a constant drive for growth. Beyond the terminal, I'm a cinematographer, always looking for a new perspective or a better way to create.",
   location: 'Tangerang, Indonesia',
@@ -17,11 +16,15 @@ export const profile = {
   },
 }
 
+// Site name for page titles.
+export const SITE = profile.name
+
 export const skills = [
-  { group: 'Frontend', items: ['ReactJS'] },
-  { group: 'Backend', items: ['Node.js', 'Express.js', 'PostgreSQL', 'TypeScript'] },
+  { group: 'Product and delivery', items: ['Agile', 'Sprint planning', 'Jira', 'Stakeholder updates'] },
+  { group: 'Backend', items: ['Node.js', 'Express.js', 'PostgreSQL', 'Sequelize', 'TypeScript'] },
+  { group: 'Frontend', items: ['React', 'Vite', 'SCSS', 'Three.js'] },
   { group: 'Mobile', items: ['Swift', 'SwiftUI', 'Kotlin'] },
-  { group: 'DevOps', items: ['AWS EC2', 'Docker', 'Git', 'GitHub Actions'] },
+  { group: 'DevOps', items: ['AWS EC2', 'nginx', 'Docker', 'Git', 'GitHub Actions'] },
   { group: 'Design', items: ['Figma'] },
 ]
 
@@ -52,7 +55,7 @@ export const experience = [
     company: 'Apple Developer Academy @BINUS',
     period: 'Mar 2025 to Dec 2025',
     points: [
-      'Collaborated with more or less 25 peers across 6 project cycles.',
+      'Collaborated with about 25 peers across 6 project cycles.',
       'Built functional apps using Swift and SwiftUI.',
     ],
   },

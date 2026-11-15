@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import emailjs from '@emailjs/browser'
 import { Button, MetaRow, Rule } from '../../components/ui'
-import { profile } from '../../data/portfolio'
+import { profile, SITE } from '../../data/portfolio'
 import './Contact.scss'
 
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID
@@ -22,9 +22,9 @@ function validate({ user_name, user_email, message }) {
 const EMPTY = { user_name: '', user_email: '', message: '' }
 
 const FIELDS = [
-  { name: 'user_name', label: 'Name', type: 'text', autoComplete: 'name' },
-  { name: 'user_email', label: 'Email', type: 'email', autoComplete: 'email' },
-  { name: 'message', label: 'Message', multiline: true },
+  { name: 'user_name', label: 'Name', type: 'text', autoComplete: 'name', maxLength: 100 },
+  { name: 'user_email', label: 'Email', type: 'email', autoComplete: 'email', maxLength: 200 },
+  { name: 'message', label: 'Message', multiline: true, maxLength: 5000 },
 ]
 
 export default function Contact() {
@@ -52,6 +52,11 @@ export default function Contact() {
       formRef.current.elements[first.name].focus()
       return
     }
+    // Honeypot: people never see the field, bots fill it. Pretend it sent.
+    if (formRef.current.elements.contact_ref.value) {
+      setStatus('sent')
+      return
+    }
     if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
       setStatus('missing-config')
       return
@@ -70,10 +75,10 @@ export default function Contact() {
 
   return (
     <div className="container contact">
-      <title>Contact · Jose Andreas Lie</title>
+      <title>{`Contact · ${SITE}`}</title>
       <meta
         name="description"
-        content="Contact Jose Andreas Lie for project management and fullstack roles, collaborations and interesting problems. Email, WhatsApp, LinkedIn or the form."
+        content="Contact Jose Andreas Lie for project management and fullstack roles, collaborations and interesting problems. Email, WhatsApp, LinkedIn, GitHub or the form."
       />
 
       <header className="contact__head">
@@ -104,7 +109,19 @@ export default function Contact() {
             <li>
               <span className="t-label t-dim">LinkedIn</span>
               <a href={profile.social.linkedin} target="_blank" rel="noreferrer">
+                in/jose-andreas-lie
+              </a>
+            </li>
+            <li>
+              <span className="t-label t-dim">GitHub</span>
+              <a href={profile.social.github} target="_blank" rel="noreferrer">
                 @joseandreaslie
+              </a>
+            </li>
+            <li>
+              <span className="t-label t-dim">CV</span>
+              <a href={profile.resume} download>
+                Download PDF
               </a>
             </li>
           </ul>
@@ -130,6 +147,7 @@ export default function Contact() {
                   type={f.type}
                   rows={f.multiline ? 6 : undefined}
                   autoComplete={f.autoComplete}
+                  maxLength={f.maxLength}
                   value={values[f.name]}
                   onChange={onChange}
                   onBlur={onBlur}
@@ -146,6 +164,8 @@ export default function Contact() {
               </div>
             )
           })}
+
+          <input className="visually-hidden" name="contact_ref" tabIndex={-1} autoComplete="off" aria-hidden="true" />
 
           <div className="contact__actions">
             <Button type="submit" variant="primary" disabled={sending}>

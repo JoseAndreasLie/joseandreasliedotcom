@@ -1,5 +1,7 @@
 # PLAN.md: jose.web.id build plan
 
+> Historical build plan from the October 2026 rebuild. Parts are out of date (Docker, Caddy, `/works` routes). `README.md` is current.
+
 Source of truth for scope: `PORTFOLIO_BRIEF.md`. This file is for coordinating subagents: who owns what, in what order, against which contracts. When the brief and this plan conflict, the brief wins; flag it, don't guess.
 
 ## 0. Ground rules for every agent

@@ -22,14 +22,14 @@ describe('works API', { skip }, () => {
   after(() => { api.server.close(); return pool.end() })
 
   describe('public', () => {
-    test('list returns published only, newest date first, without body', async () => {
+    test('list returns published only, newest date first, without body, media or links', async () => {
       await insert({ slug: 'old', published: true, date: '2025-01-01' })
       await insert({ slug: 'new', published: true, date: '2026-02-01' })
       await insert({ slug: 'draft', published: false, date: '2026-03-01' })
       const r = await api('/api/works')
       assert.equal(r.status, 200)
       assert.deepEqual(r.body.map((w) => w.slug), ['new', 'old'])
-      assert.ok(!('body' in r.body[0]))
+      for (const k of ['body', 'media', 'links']) assert.ok(!(k in r.body[0]), k)
       assert.equal(r.body[0].date, '2026-02-01')
     })
 

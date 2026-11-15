@@ -72,7 +72,7 @@ async function withDevMock(call, mock) {
 
 // Resources: 'works' (Behind the Lens: photo + video), 'projects', 'products'.
 // Mirrors BE ordering: works newest first, projects/products by position.
-const HEAVY = { works: 'body', projects: 'body', products: 'writeup' }
+const HEAVY = { works: ['body', 'media', 'links'], projects: ['body', 'media', 'links'], products: ['writeup'] }
 const byOrder = (resource) =>
   resource === 'works' ? (a, b) => b.date.localeCompare(a.date) : (a, b) => a.position - b.position || (b.year ?? 0) - (a.year ?? 0)
 
@@ -87,7 +87,7 @@ export function list(resource, { type } = {}) {
       mocks[resource]
         .filter((r) => r.published && (!type || r.type === type))
         .sort(byOrder(resource))
-        .map(({ [HEAVY[resource]]: _heavy, ...rest }) => rest), // eslint-disable-line no-unused-vars
+        .map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => !HEAVY[resource].includes(k)))),
   )
 }
 

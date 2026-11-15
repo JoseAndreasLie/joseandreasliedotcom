@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { FrameCounter, LoadState, MetaRow, Viewfinder } from '../../components/ui'
 import { list } from '../../lib/api'
 import { useFetch } from '../../lib/useFetch'
+import { thumbOf } from '../../lib/media'
+import { SITE } from '../../data/portfolio'
 import './Projects.scss'
 
 export default function Projects() {
@@ -10,7 +12,7 @@ export default function Projects() {
 
   return (
     <div className="projects container">
-      <title>Projects · Jose Andreas Lie</title>
+      <title>{`Projects · ${SITE}`}</title>
       <meta name="description" content="Selected projects by Jose Andreas Lie: backend, iOS and Android builds from the Apple Developer Academy, industry work and personal projects." />
       <header className="projects__head">
         <h1 className="t-display">
@@ -32,7 +34,7 @@ export default function Projects() {
                 <MetaRow items={[p.year, p.role]} />
                 {p.cover_url && (
                   <Viewfinder className="project__cover">
-                    <img src={p.cover_url} alt="" loading="lazy" decoding="async" />
+                    <img src={thumbOf(p.cover_url)} alt="" loading="lazy" decoding="async" />
                   </Viewfinder>
                 )}
               </div>

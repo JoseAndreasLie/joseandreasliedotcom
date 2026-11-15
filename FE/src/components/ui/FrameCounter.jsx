@@ -4,8 +4,9 @@ const pad = (n) => String(n).padStart(3, '0')
 export default function FrameCounter({ index, total, className = '' }) {
   const text = total ? `FR ${pad(index)} / ${pad(total)}` : `FR ${pad(index)}`
   return (
-    <span className={`frame-counter ${className}`.trim()} aria-label={total ? `Frame ${index} of ${total}` : `Frame ${index}`}>
-      {text}
+    <span className={`frame-counter ${className}`.trim()}>
+      <span aria-hidden="true">{text}</span>
+      <span className="visually-hidden">{total ? `Item ${index} of ${total}` : `Item ${index}`}</span>
     </span>
   )
 }

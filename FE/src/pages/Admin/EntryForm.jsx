@@ -771,7 +771,13 @@ export default function EntryForm({ resource, row, onSaved, onCancel }) {
                           onChange={(e) => setMedia((ms) => ms.map((x, j) => (j === i ? { ...x, alt: e.target.value } : x)))}
                           maxLength={200}
                           placeholder="Describe the image"
+                          aria-describedby={m.alt.trim() ? undefined : `w-alt-${i}-hint`}
                         />
+                        {!m.alt.trim() && (
+                          <p id={`w-alt-${i}-hint`} className="afield__hint">
+                            No alt text yet. Describe this photo for people who cannot see it.
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <code className="admin-media__url">{m.url}</code>

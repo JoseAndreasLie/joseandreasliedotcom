@@ -1,11 +1,9 @@
 import { Component, lazy, Suspense, useMemo, useState, useSyncExternalStore } from 'react'
-import { Link } from 'react-router-dom'
-import { Button, FrameCounter, MediaCard, RecDot, Section, Viewfinder } from '../../components/ui'
+import { Button, FrameCounter, MediaCard, ProductBadge, RecDot, Section, Viewfinder } from '../../components/ui'
 import { list } from '../../lib/api'
 import { useFetch } from '../../lib/useFetch'
 import { profile } from '../../data/portfolio'
 import { buildStills, FOCUS } from './stills'
-import ProductBadge from '../Products/ProductBadge'
 import './Home.scss'
 
 // Separate chunk: three + R3F never load on mobile, reduced motion or without WebGL2.
@@ -67,6 +65,12 @@ function StillGrid({ stills, hidden }) {
 const first = profile.name.split(' ').slice(0, -1).join(' ')
 const last = profile.name.split(' ').at(-1)
 
+const HERO_LINKS = [
+  { label: 'GitHub', href: profile.social.github },
+  { label: 'LinkedIn', href: profile.social.linkedin },
+  { label: 'Email', href: `mailto:${profile.email}` },
+]
+
 function Hero({ stills }) {
   const [sceneReady, setSceneReady] = useState(false)
   const [contextLost, setContextLost] = useState(false)
@@ -91,15 +95,26 @@ function Hero({ stills }) {
         </h1>
         <p className="hero__titles">{profile.titles.join(' · ')}</p>
         <p className="hero__rec t-label">
-          <RecDot /> Rec · Indonesia · An engineer who also shoots
+          <RecDot /> {profile.location} · Node.js · PostgreSQL · React · Swift
         </p>
         <div className="hero__actions">
           <Button to="/projects" variant="primary">
             See the projects
           </Button>
-          <Button to="/lens">Behind the Lens</Button>
+          <Button href={profile.resume} download>
+            Download CV
+          </Button>
           <Button to="/contact">Get in touch</Button>
         </div>
+        <ul className="hero__links">
+          {HERO_LINKS.map((l) => (
+            <li key={l.label}>
+              <a href={l.href} {...(l.href.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})}>
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )
@@ -122,7 +137,10 @@ function CardSection({ title, id, state, items, empty, more, render }) {
       )}
       {state.status === 'error' && (
         <p className="home-note">
-          This section is offline right now. <Link to={more.to}>Try the full page</Link> in a moment.
+          Could not load this section.{' '}
+          <button type="button" onClick={state.retry}>
+            Try again
+          </button>
         </p>
       )}
       {state.status === 'ready' && items.length === 0 && <p className="home-note">{empty}</p>}
@@ -157,11 +175,8 @@ export default function Home() {
 
   return (
     <>
-      <title>{`${profile.name} · Engineer who also shoots`}</title>
-      <meta
-        name="description"
-        content={`${profile.name}: ${profile.titles.join(' and ')} in Indonesia. An engineer who also shoots.`}
-      />
+      {/* Description: the static one in index.html covers Home. */}
+      <title>{`${profile.name} · ${profile.titles.join(' · ')}`}</title>
       <Hero stills={stills} />
       <CardSection
         title="Featured projects"
@@ -183,25 +198,6 @@ export default function Home() {
         )}
       />
       <CardSection
-        title="Behind the Lens"
-        id="behind-the-lens"
-        state={works}
-        items={(works.data ?? []).slice(0, 3)}
-        empty="No frames published yet."
-        more={{ to: '/lens', label: 'All frames' }}
-        render={(w, i) => (
-          <MediaCard
-            to={`/lens/${w.slug}`}
-            cover={w.cover_url}
-            title={w.title}
-            summary={w.summary}
-            meta={[w.date?.slice(0, 4), w.type, w.shot_on]}
-            index={i + 1}
-            total={works.data.length}
-          />
-        )}
-      />
-      <CardSection
         title="Live products"
         id="live-products"
         state={products}
@@ -219,6 +215,25 @@ export default function Home() {
             index={i + 1}
             total={products.data.length}
             badge={<ProductBadge product={p} />}
+          />
+        )}
+      />
+      <CardSection
+        title="Behind the Lens"
+        id="behind-the-lens"
+        state={works}
+        items={(works.data ?? []).slice(0, 3)}
+        empty="Nothing published yet."
+        more={{ to: '/lens', label: 'All photos and videos' }}
+        render={(w, i) => (
+          <MediaCard
+            to={`/lens/${w.slug}`}
+            cover={w.cover_url}
+            title={w.title}
+            summary={w.summary}
+            meta={[w.date?.slice(0, 4), w.type, w.shot_on]}
+            index={i + 1}
+            total={works.data.length}
           />
         )}
       />

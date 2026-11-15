@@ -1,45 +1,13 @@
-import { motion, useReducedMotion } from 'framer-motion'
+import { useLocation } from 'react-router-dom'
 
-// PageTransition({ children }): wrap each route element. Shutter wipe (~500ms: close 250ms + open 250ms) under AnimatePresence mode="wait"; plain 150ms fade under reduced motion.
-const ease = [0.77, 0, 0.175, 1]
-const half = 0.25
-
+// PageTransition({ children }): wrap each route element. A Graphite shutter blade opens over the new page (250ms, CSS only;
+// instant under reduced motion via the global rule). Skipped on the first page of a visit so nothing covers first paint.
 export default function PageTransition({ children }) {
-  const reduce = useReducedMotion()
-
-  if (reduce) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
-      >
-        {children}
-      </motion.div>
-    )
-  }
-
+  const { key } = useLocation()
   return (
     <>
-      {/* exit is a no-op tween so presence waits for the closing shutter */}
-      <motion.div exit={{ opacity: 1 }} transition={{ duration: half }}>
-        {children}
-      </motion.div>
-      <motion.div
-        className="shutter shutter--open"
-        aria-hidden="true"
-        initial={{ transform: 'scaleY(1)' }}
-        animate={{ transform: 'scaleY(0)', transition: { duration: half, ease } }}
-        exit={{ transform: 'scaleY(0)' }}
-      />
-      <motion.div
-        className="shutter shutter--close"
-        aria-hidden="true"
-        initial={{ transform: 'scaleY(0)' }}
-        animate={{ transform: 'scaleY(0)' }}
-        exit={{ transform: 'scaleY(1)', transition: { duration: half, ease } }}
-      />
+      {children}
+      {key !== 'default' && <div className="shutter" aria-hidden="true" />}
     </>
   )
 }

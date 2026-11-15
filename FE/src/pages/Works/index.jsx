@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { MediaCard, Viewfinder, Button, Rule } from '../../components/ui'
+import { LoadState, MediaCard, Viewfinder, Button, Rule } from '../../components/ui'
 import { list } from '../../lib/api'
+import { useFetch } from '../../lib/useFetch'
+import { SITE } from '../../data/portfolio'
 import { TYPES, cardMeta } from './works'
 import './Works.scss'
 
@@ -14,35 +15,23 @@ export default function Works() {
   const type = TYPES.includes(raw) ? raw : ''
   const label = FILTERS.find(([t]) => t === type)[1]
 
-  const [attempt, setAttempt] = useState(0)
-  const [state, setState] = useState({ status: 'loading' })
+  const state = useFetch(() => list('works', { type: type || undefined }), [type])
+  const works = state.status === 'ready' ? state.data : []
 
-  useEffect(() => {
-    let live = true
-    setState({ status: 'loading' })
-    list('works', { type: type || undefined }).then(
-      (works) => live && setState({ status: 'ready', works }),
-      (error) => live && setState({ status: 'error', error }),
-    )
-    return () => {
-      live = false
-    }
-  }, [type, attempt])
-
-  const n = state.works?.length ?? 0
+  const n = works.length
   const status =
-    state.status === 'loading' ? 'Loading' : state.status === 'error' ? 'Offline' : `${n} ${n === 1 ? 'frame' : 'frames'}`
+    state.status === 'loading' ? 'Loading' : state.status === 'error' ? 'Offline' : `${n} ${n === 1 ? 'post' : 'posts'}`
 
   return (
     <div className="works container">
-      <title>{type ? `${label} · Behind the Lens · Jose Andreas Lie` : 'Behind the Lens · Jose Andreas Lie'}</title>
+      <title>{type ? `${label} · Behind the Lens · ${SITE}` : `Behind the Lens · ${SITE}`}</title>
       <meta name="description" content="Behind the Lens: photoshoots and video edits by Jose Andreas Lie, newest first." />
 
       <header className="works__head">
         <h1 className="t-display">
           Behind the <em>Lens</em>
         </h1>
-        <p className="works__lede">Photoshoots and video edits, away from the keyboard. Newest frame first.</p>
+        <p className="works__lede">Photoshoots and video edits, away from the keyboard. Newest first.</p>
       </header>
 
       <div className="works__bar">
@@ -82,33 +71,22 @@ export default function Works() {
         </ul>
       )}
 
-      {state.status === 'error' && (
-        <div className="works__state">
-          <Viewfinder className="works__state-frame">
-            <p className="t-label">No signal</p>
-          </Viewfinder>
-          <h2 className="t-headline">Frames could not load.</h2>
-          <p className="t-dim">{state.error.message}</p>
-          <Button variant="primary" onClick={() => setAttempt((a) => a + 1)}>
-            Try again
-          </Button>
-        </div>
-      )}
+      {state.status === 'error' && <LoadState state={state} noun="Photos and videos" />}
 
       {state.status === 'ready' && n === 0 && (
         <div className="works__state">
           <Viewfinder className="works__state-frame">
-            <p className="t-label">FR 000</p>
+            <p className="t-label">Nothing here yet</p>
           </Viewfinder>
-          <h2 className="t-headline">{type ? `No ${type} frames yet.` : 'Nothing published yet.'}</h2>
-          <p className="t-dim">{type ? 'Try another type, or see everything.' : 'New frames land here as they ship.'}</p>
-          {type && <Button to="/lens">Show all frames</Button>}
+          <h2 className="t-headline">{type ? `No ${type}s yet.` : 'Nothing published yet.'}</h2>
+          <p className="t-dim">{type ? 'Try another type, or see everything.' : 'New work lands here as it ships.'}</p>
+          {type && <Button to="/lens">Show everything</Button>}
         </div>
       )}
 
       {state.status === 'ready' && n > 0 && (
         <ul className="works__grid">
-          {state.works.map((w, i) => (
+          {works.map((w, i) => (
             <li key={w.id ?? w.slug} className="works__item" style={{ '--i': Math.min(i, 8) }}>
               <MediaCard
                 to={`/lens/${encodeURIComponent(w.slug)}`}

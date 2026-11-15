@@ -1,11 +1,17 @@
 # Jose Andreas Lie — Portfolio
 
-React + Vite portfolio site. SCSS, React Router, Framer Motion, EmailJS contact form, dark/light theme toggle.
+React + Vite portfolio site. SCSS, React Router, Three.js hero, EmailJS contact form, dark/light theme toggle.
 
 ## Layout
 
 - `FE/`: React + Vite site, served at `jose.web.id`
 - `BE/`: Node + Express API, served at `jose.web.id/api` (port 4000)
+
+Live: https://jose.web.id
+
+## Requirements
+
+Node 22 (`.nvmrc`). The API also needs PostgreSQL and, for image uploads, MinIO.
 
 ## Develop
 
@@ -15,7 +21,9 @@ npm install
 npm run dev
 ```
 
-Vite proxies `/api` to `http://localhost:4000` in dev. Without the API, public pages fall back to `FE/src/lib/mocks.js`.
+Vite proxies `/api` to `http://localhost:4000` in dev. Without the API, public pages fall back to `FE/src/lib/mocks.js`. The fallback only triggers when nothing answers on that port, so if another app is using 4000, force the mocks with `API_URL=http://127.0.0.1:9 npm run dev`.
+
+Checks, from the repo root: `npm run lint`, `npm run build`, `npm test` (FE unit tests, then the BE suite). CI runs the same on every push (`.github/workflows/ci.yml`).
 
 API (needs Postgres; copy `BE/.env.example` to `BE/.env`):
 
@@ -42,7 +50,7 @@ VITE_EMAILJS_TEMPLATE_ID=
 VITE_EMAILJS_PUBLIC_KEY=
 ```
 
-The template should accept `user_name`, `user_email`, and `message` fields (see `FE/src/pages/Contact.jsx`).
+The template should accept `user_name`, `user_email`, and `message` fields (see `FE/src/pages/Contact/index.jsx`). The form also has a hidden honeypot field, `contact_ref`, that is never sent.
 
 ## Deploy
 
@@ -50,7 +58,7 @@ The template should accept `user_name`, `user_email`, and `message` fields (see 
 npm run deploy
 ```
 
-Builds the FE locally, rsyncs `BE/` and `FE/dist/` to the `aws` ssh host under `/var/www/jose.web.id/`, then runs `npm ci --omit=dev` and `pm2 restart jose-api` there. nginx serves the FE, proxies `/api` to the API and `/media` to MinIO. Postgres and MinIO run natively on the same box.
+Refuses to run with uncommitted changes, lints and tests the FE, builds it locally, rsyncs `BE/` and `FE/dist/` to the `aws` ssh host under `/var/www/jose.web.id/`, then runs `npm ci --omit=dev` and `pm2 restart jose-api` there, and finishes with a smoke test against the live site. nginx serves the FE, proxies `/api` to the API and `/media` to MinIO. Postgres and MinIO run natively on the same box.
 
 ### One-time server setup
 
